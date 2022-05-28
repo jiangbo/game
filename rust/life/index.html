@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<head>
+    <title>康威生命游戏</title>
+    <style>
+        body {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="play-pause">暂停</button>
+    <hr>
+    <canvas id="life"></canvas>
+    <script type="module">
+        import init, { Universe } from "./pkg/life.js";
+        let wasm = await init();
+
+        const CELL_SIZE = 13;
+        const GRID_COLOR = "#CCCCCC";
+        const DEAD_COLOR = "#FFFFFF";
+        const ALIVE_COLOR = "#000000";
+        const WIDTH = 48;
+        const HEIGHT = 48;
+
+
+        const canvas = document.getElementById("life");
+        canvas.height = (CELL_SIZE + 1) * HEIGHT + 1;
+        canvas.width = (CELL_SIZE + 1) * WIDTH + 1;
+        const ctx = canvas.getContext('2d');
+
+        const universe = Universe.new(WIDTH, HEIGHT);
+        let animationId = null;
+        const renderLoop = () => {
+            drawGrid();
+            drawCells();
+            universe.tick();
+            animationId = requestAnimationFrame(renderLoop);
+        };
+
+        const drawGrid = () => {
+            ctx.beginPath();
+            ctx.strokeStyle = GRID_COLOR;
+
+            for (let i = 0; i <= WIDTH; i++) {
+                ctx.moveTo(i * (CELL_SIZE + 1) + 1, 0);
+                ctx.lineTo(i * (CELL_SIZE + 1) + 1, (CELL_SIZE + 1) * HEIGHT + 1);
+            }
+
+            for (let j = 0; j <= HEIGHT; j++) {
+                ctx.moveTo(0, j * (CELL_SIZE + 1) + 1);
+                ctx.lineTo((CELL_SIZE + 1) * WIDTH + 1, j * (CELL_SIZE + 1) + 1);
+            }
+
+            ctx.stroke();
+        };
+
+        const bitIsSet = (n, arr) => {
+            const byte = Math.floor(n / 8);
+            const mask = 1 << (n % 8);
+            return (arr[byte] & mask) === mask;
+        };
+
+        const drawCells = () => {
+            const cellsPtr = universe.cells();
+            const cells = new Uint8Array(wasm.memory.buffer, cellsPtr, WIDTH * HEIGHT / 8);
+
+            ctx.beginPath();
+            for (let row = 0; row < HEIGHT; row++) {
+                for (let col = 0; col < WIDTH; col++) {
+                    const idx = row * WIDTH + col;
+                    ctx.fillStyle = bitIsSet(idx, cells) ? ALIVE_COLOR : DEAD_COLOR;
+                    ctx.fillRect(col * (CELL_SIZE + 1) + 1,
+                        row * (CELL_SIZE + 1) + 1, CELL_SIZE, CELL_SIZE);
+                }
+            }
+            ctx.stroke();
+        };
+
+        const playPauseButton = document.getElementById("play-pause");
+        const play = () => {
+            playPauseButton.textContent = "暂停";
+            renderLoop();
+        };
+
+        const pause = () => {
+            playPauseButton.textContent = "继续";
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        };
+
+        playPauseButton.addEventListener("click", _ => {
+            animationId === null ? play() : pause();
+        });
+
+        canvas.addEventListener("click", event => {
+            const boundingRect = canvas.getBoundingClientRect();
+
+            const scaleX = canvas.width / boundingRect.width;
+            const scaleY = canvas.height / boundingRect.height;
+
+            const canvasLeft = (event.clientX - boundingRect.left) * scaleX;
+            const canvasTop = (event.clientY - boundingRect.top) * scaleY;
+
+            const row = Math.min(Math.floor(canvasTop / (CELL_SIZE + 1)), HEIGHT - 1);
+            const col = Math.min(Math.floor(canvasLeft / (CELL_SIZE + 1)), WIDTH - 1);
+
+            universe.toggle_cell(row, col);
+
+            drawGrid();
+            drawCells();
+        });
+        play()
+    </script>
+</body>
+
+</html>
