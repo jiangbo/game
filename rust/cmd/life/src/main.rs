@@ -1,36 +1,39 @@
+use std::io::Write;
 use std::{io, time::Duration};
 
 use crossterm::{cursor, event, terminal, ExecutableCommand};
-use crossterm::{event::KeyCode, style::Print};
+use crossterm::{event::KeyCode, style::Print, QueueableCommand};
 use life::Universe;
 
 fn main() -> crossterm::Result<()> {
     let (cols, rows) = terminal::size()?;
-    let mut universe = Universe::new((cols / 2) as u32, rows as u32);
+    let (width, height) = ((cols / 2) as u32, rows as u32);
+    let mut universe = Universe::new(width, height);
 
     io::stdout()
-        .execute(terminal::EnterAlternateScreen)?
-        .execute(terminal::SetTitle("康威生命游戏"))?
-        .execute(terminal::DisableLineWrap)?
-        .execute(cursor::Hide)?;
+        .queue(terminal::EnterAlternateScreen)?
+        .queue(terminal::SetTitle("Conway's Life Game"))?
+        .queue(terminal::Clear(terminal::ClearType::All))?
+        .queue(cursor::Hide)?;
 
-    let mut flag = true;
+    let mut goon = true;
     loop {
-        if event::poll(Duration::from_millis(250))? {
+        if event::poll(Duration::from_millis(10))? {
             if let event::Event::Key(event) = event::read()? {
                 match event.code {
                     KeyCode::Esc => break,
-                    KeyCode::Enter => flag = !flag,
+                    KeyCode::Enter => goon = !goon,
                     _ => (),
                 }
             }
         }
 
-        if flag {
+        if goon {
             universe.tick();
             io::stdout()
-                .execute(terminal::Clear(terminal::ClearType::All))?
-                .execute(Print(&universe))?;
+                .queue(terminal::Clear(terminal::ClearType::All))?
+                .queue(Print(&universe))?
+                .flush()?;
         }
     }
 

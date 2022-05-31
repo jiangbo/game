@@ -39,9 +39,9 @@ impl Universe {
             for col in 0..self.width {
                 let idx = self.get_index(row, col);
                 let cell = self.cells[idx];
-                let live_neighbors = self.live_neighbor_count(row, col);
+                let lives = self.live_neighbor_count(row, col);
 
-                let next_cell = match (cell, live_neighbors) {
+                let next_cell = match (cell, lives) {
                     (true, x) if !(2..=3).contains(&x) => false,
                     (true, 2) | (true, 3) | (false, 3) => true,
                     (otherwise, _) => otherwise,
@@ -66,16 +66,17 @@ impl Universe {
 
 impl fmt::Display for Universe {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let capacity = (self.width + 1) * self.height;
+        let mut buffer = Vec::with_capacity(capacity as usize);
         for row in 0..self.height {
             for column in 0..self.width {
                 let idx = self.get_index(row, column);
-
-                let cell = self.cells[idx];
-                let symbol = if cell { '🦠' } else { ' ' };
-                write!(f, "{} ", symbol)?;
+                let symbol = if self.cells[idx] { b'Q' } else { b'-' };
+                buffer.push(symbol);
             }
-            writeln!(f)?;
+            buffer.push(b'\n');
         }
+        write!(f, "{}", String::from_utf8(buffer).unwrap())?;
         Ok(())
     }
 }
