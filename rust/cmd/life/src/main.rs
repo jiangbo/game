@@ -75,7 +75,7 @@ impl World {
         std::io::stdout()
             .execute(terminal::Clear(terminal::ClearType::All))?
             .execute(cursor::Show)?;
-        terminal::enable_raw_mode()
+        terminal::disable_raw_mode()
     }
 }
 
