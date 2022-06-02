@@ -4,6 +4,7 @@ name = "life"
 version = "0.1.0"
 
 [dependencies]
-crossterm = "0.23.2"
-fastrand = "1.7.0"
-fixedbitset = "0.4.1"
+crossterm = "0.23"
+fastrand = "1.7"
+fixedbitset = "0.4"
+log = "0.4"
