@@ -1,6 +1,6 @@
 use crossterm::{cursor, event, style::Print, terminal};
 use crossterm::{ExecutableCommand, QueueableCommand};
-use game::Universe;
+use life::Universe;
 use std::{fmt::Display, io::Write, time::Duration};
 
 fn main() -> crossterm::Result<()> {
