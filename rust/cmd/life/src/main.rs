@@ -1,5 +1,5 @@
+use crossterm::QueueableCommand;
 use crossterm::{cursor, event, style::Print, terminal};
-use crossterm::{ExecutableCommand, QueueableCommand};
 use life::Universe;
 use std::{fmt::Display, io::Write, time::Duration};
 
@@ -35,7 +35,6 @@ fn handle_event(world: &mut World, event: event::Event) {
 }
 
 struct World {
-    description: &'static str,
     status: Status,
     universe: Universe,
 }
@@ -51,7 +50,6 @@ impl World {
         let (cols, rows) = World::create_terminal()?;
         let (width, height) = (cols as u32, rows as u32);
         Ok(World {
-            description: "Space for pause, Esc and Ctrl + c for exit",
             status: Status::Running,
             universe: Universe::new(width / 2, height - 3),
         })
@@ -59,7 +57,10 @@ impl World {
 
     fn create_terminal() -> crossterm::Result<(u16, u16)> {
         terminal::enable_raw_mode()?;
-        std::io::stdout().execute(cursor::Hide)?;
+        std::io::stdout()
+            .queue(cursor::Hide)?
+            .queue(terminal::Clear(terminal::ClearType::All))?
+            .queue(terminal::DisableLineWrap)?;
         terminal::size()
     }
 
@@ -73,8 +74,9 @@ impl World {
 
     fn reset_terminal() -> crossterm::Result<()> {
         std::io::stdout()
-            .execute(terminal::Clear(terminal::ClearType::All))?
-            .execute(cursor::Show)?;
+            .queue(terminal::Clear(terminal::ClearType::All))?
+            .queue(terminal::EnableLineWrap)?
+            .queue(cursor::Show)?;
         terminal::disable_raw_mode()
     }
 }
@@ -89,6 +91,6 @@ impl Drop for World {
 
 impl Display for World {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}\n\n{}", self.description, self.universe)
+        write!(f, "\t\tConway' Life Game\n\n{}", self.universe)
     }
 }
