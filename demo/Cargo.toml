@@ -1,0 +1,34 @@
+[package]
+name = "demo"
+description = "wasm demo"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+lto = true
+
+[dependencies]
+wasm-bindgen = "*"
+console_error_panic_hook = "*"
+rand = "*"
+getrandom = { version = "*", features = ["js"] }
+
+[dependencies.web-sys]
+version = "*"
+features = [
+  "console",
+  "Window",
+  "Document",
+  "HtmlCanvasElement",
+  "CanvasRenderingContext2d",
+  "Element",
+]
+
+[dev-dependencies]
+wasm-bindgen-test = "*"
+futures = "*"
+js-sys = "*"
+wasm-bindgen-futures = "*"
