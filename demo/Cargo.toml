@@ -11,10 +11,13 @@ crate-type = ["cdylib"]
 lto = true
 
 [dependencies]
-wasm-bindgen = "*"
+wasm-bindgen = { version = "*", features = ["serde-serialize"] }
 console_error_panic_hook = "*"
 rand = "*"
 getrandom = { version = "*", features = ["js"] }
+futures = "*"
+wasm-bindgen-futures = "*"
+serde = { version = "1", features = ["derive"] }
 
 [dependencies.web-sys]
 version = "*"
@@ -25,6 +28,8 @@ features = [
   "HtmlCanvasElement",
   "CanvasRenderingContext2d",
   "Element",
+  "HtmlImageElement",
+  "Response",
 ]
 
 [dev-dependencies]
