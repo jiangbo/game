@@ -11,13 +11,16 @@ crate-type = ["cdylib"]
 lto = true
 
 [dependencies]
-wasm-bindgen = { version = "*", features = ["serde-serialize"] }
+wasm-bindgen = "*"
 console_error_panic_hook = "*"
 rand = "*"
 getrandom = { version = "*", features = ["js"] }
 futures = "*"
 wasm-bindgen-futures = "*"
+gloo-utils = { version = "*", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
+anyhow = "1"
+async-trait = "*"
 
 [dependencies.web-sys]
 version = "*"
@@ -30,6 +33,8 @@ features = [
   "Element",
   "HtmlImageElement",
   "Response",
+  "Performance",
+  "KeyboardEvent",
 ]
 
 [dev-dependencies]
