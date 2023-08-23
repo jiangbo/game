@@ -1,8 +1,12 @@
-const std = @import("std");
 const c = @import("c.zig");
+const fmt = @import("std").fmt;
 
 pub const WIDTH = 10;
 pub const HEIGHT = 20;
+
+const FPS = 60;
+const SCALE = 40; // 放大倍数
+const BORDER = 2; // 边框
 
 pub const Screen = struct {
     line: usize = HEIGHT,
@@ -14,8 +18,8 @@ pub const Screen = struct {
     pub fn init(self: *Screen) void {
         if (c.SDL_Init(c.SDL_INIT_EVERYTHING) < 0) c.sdlPanic();
         if (c.TTF_Init() < 0) c.sdlPanic();
-        self.font = c.TTF_OpenFont("clacon.ttf", 60) orelse c.sdlPanic();
 
+        self.font = c.TTF_OpenFont("clacon.ttf", 60) orelse c.sdlPanic();
         const center = c.SDL_WINDOWPOS_CENTERED;
         self.window = c.SDL_CreateWindow("俄罗斯方块", center, center, //
             700, 850, c.SDL_WINDOW_SHOWN) orelse c.sdlPanic();
@@ -24,13 +28,38 @@ pub const Screen = struct {
         orelse c.sdlPanic();
     }
 
+    pub fn update(self: *Screen, score: usize, over: bool) void {
+        _ = c.SDL_SetRenderDrawColor(self.renderer, 0x3b, 0x3b, 0x3b, 0xff);
+        _ = c.SDL_RenderClear(self.renderer);
+        for (0..WIDTH) |row| {
+            for (0..HEIGHT) |col| {
+                var color = self.buffer[row][col];
+                if (color == 0) color = 0x404040ff;
+                self.draw(row, col, color);
+            }
+        }
+
+        self.drawScore(score);
+        self.drawText("Next", 510, 280);
+        var r = c.SDL_Rect{ .x = 440, .y = 360, .w = 240, .h = 200 };
+        _ = c.SDL_RenderFillRect(self.renderer, &r);
+        if (over) self.drawText("GAME OVER", 460, 650);
+    }
+
     pub fn draw(self: *Screen, x: usize, y: usize, rgba: u32) void {
         const r: u8 = @truncate((rgba >> 24) & 0xff);
         const g: u8 = @truncate((rgba >> 16) & 0xff);
         const b: u8 = @truncate((rgba >> 8) & 0xff);
         const a: u8 = @truncate((rgba >> 0) & 0xff);
+
         _ = c.SDL_SetRenderDrawColor(self.renderer, r, g, b, a);
-        self.fillRect(x, y);
+        const rect = c.SDL_Rect{
+            .x = @intCast(x * SCALE + BORDER + 20),
+            .y = @intCast(y * SCALE + BORDER + 20),
+            .w = @intCast(SCALE - BORDER * 2),
+            .h = @intCast(SCALE - BORDER * 2),
+        };
+        _ = c.SDL_RenderFillRect(self.renderer, &rect);
     }
 
     pub fn drawSolid(self: *Screen, x: usize, y: usize, rgba: u32) bool {
@@ -54,48 +83,15 @@ pub const Screen = struct {
         return true;
     }
 
-    pub fn hasSolid(self: *Screen, x: usize, y: usize) bool {
-        if (x >= WIDTH) return false;
-        return y >= HEIGHT or self.buffer[x][y] != 0;
-    }
-
-    fn fillRect(self: *Screen, x: usize, y: usize) void {
-        const scale = 40;
-        const border = 2;
-        const rect = c.SDL_Rect{
-            .x = @intCast(x * scale + border + 20),
-            .y = @intCast(y * scale + border + 20),
-            .w = @intCast(scale - border * 2),
-            .h = @intCast(scale - border * 2),
-        };
-        _ = c.SDL_RenderFillRect(self.renderer, &rect);
-    }
-
-    pub fn display(self: *Screen, score: usize) void {
-        self.setColor(0x3b, 0x3b, 0x3b);
-        _ = c.SDL_RenderClear(self.renderer);
-        for (0..WIDTH) |row| {
-            for (0..HEIGHT) |col| {
-                const color = self.buffer[row][col];
-                if (color == 0) {
-                    self.setColor(40, 40, 40);
-                    self.fillRect(row, col);
-                } else {
-                    self.draw(row, col, color);
-                }
-            }
-        }
+    fn drawScore(self: *Screen, score: usize) void {
         self.drawText("Score", 500, 50);
-        self.setColor(40, 40, 40);
+
+        _ = c.SDL_SetRenderDrawColor(self.renderer, 40, 40, 40, 0xff);
         var r = c.SDL_Rect{ .x = 440, .y = 120, .w = 240, .h = 100 };
         _ = c.SDL_RenderFillRect(self.renderer, &r);
-
         var buf: [9]u8 = undefined;
-        var text = std.fmt.bufPrintZ(&buf, "{:0>7}", .{score}) catch unreachable;
-        self.drawText(text, 480, 145);
-        self.drawText("Next", 510, 280);
-        r = c.SDL_Rect{ .x = 440, .y = 360, .w = 240, .h = 200 };
-        _ = c.SDL_RenderFillRect(self.renderer, &r);
+        var text = fmt.bufPrintZ(&buf, "{:0>7}", .{score});
+        self.drawText(text catch unreachable, 480, 145);
     }
 
     pub fn drawText(self: *Screen, text: [*c]const u8, x: i32, y: i32) void {
@@ -110,9 +106,14 @@ pub const Screen = struct {
         c.SDL_DestroyTexture(texture);
     }
 
-    pub fn present(self: *Screen, fps: u32) void {
+    pub fn hasSolid(self: *const Screen, x: usize, y: usize) bool {
+        if (x >= WIDTH) return false;
+        return y >= HEIGHT or self.buffer[x][y] != 0;
+    }
+
+    pub fn present(self: *Screen) void {
         c.SDL_RenderPresent(self.renderer);
-        c.SDL_Delay(1000 / fps);
+        c.SDL_Delay(1000 / FPS);
     }
 
     pub fn deinit(self: *Screen) void {
@@ -120,9 +121,5 @@ pub const Screen = struct {
         c.SDL_DestroyWindow(self.window);
         c.TTF_Quit();
         c.SDL_Quit();
-    }
-
-    fn setColor(self: *Screen, r: u8, g: u8, b: u8) void {
-        _ = c.SDL_SetRenderDrawColor(self.renderer, r, g, b, 0xff);
     }
 };
