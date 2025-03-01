@@ -1,3 +1,3 @@
-# 效果
+# Screenshot
 
-![效果](readme.webp)
+![Screenshot](readme.webp)
