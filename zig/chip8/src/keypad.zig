@@ -2,30 +2,18 @@ const c = @cImport(@cInclude("SDL.h"));
 const std = @import("std");
 
 pub const Keypad = struct {
-    buffer: [16]bool = undefined,
+    buffer: [16]bool = std.mem.zeroes([16]bool),
     event: c.SDL_Event = undefined,
-    pub fn new() Keypad {
-        return Keypad{
-            .buffer = std.mem.zeroes([16]bool),
-        };
-    }
 
     pub fn poll(self: *Keypad) bool {
-        const start = std.time.milliTimestamp();
-        _ = start;
         while (c.SDL_PollEvent(&self.event) > 0) {
             if (self.event.type == c.SDL_QUIT) return false;
 
             const flag = if (self.event.type == c.SDL_KEYDOWN) true //
             else if (self.event.type == c.SDL_KEYUP) false //
             else continue;
-            // std.log.info("event: {}", .{self.event.key.keysym});
             self.setBuffer(self.event.key.keysym.sym, flag);
         }
-
-        const end = std.time.milliTimestamp();
-        _ = end;
-        // std.log.info("ms: {}", .{end - start});
         return true;
     }
 
@@ -49,7 +37,5 @@ pub const Keypad = struct {
             c.SDLK_v => self.buffer[15] = value,
             else => return,
         }
-        // buffer.* = value;
-        // std.log.info("buffer:{any}", .{self.buffer});
     }
 };

@@ -1,22 +1,17 @@
-const c = @cImport(@cInclude("SDL.h"));
 const std = @import("std");
+const c = @cImport(@cInclude("SDL.h"));
 
 const WIDTH: c_int = 64;
 const HEIGHT: c_int = 32;
+const BUFFER_SIZE = WIDTH * HEIGHT;
 
 pub const Screen = struct {
-    scale: u8,
-    buffer: [WIDTH * HEIGHT]u1 = undefined,
+    scale: u8 = 10,
+    buffer: [BUFFER_SIZE]bool = undefined,
     needRender: bool = true,
     window: *c.SDL_Window = undefined,
     renderer: *c.SDL_Renderer = undefined,
     texture: *c.SDL_Texture = undefined,
-
-    pub fn new() Screen {
-        return Screen{
-            .scale = 10,
-        };
-    }
 
     pub fn init(self: *Screen) void {
         if (c.SDL_Init(c.SDL_INIT_EVERYTHING) < 0)
@@ -47,30 +42,29 @@ pub const Screen = struct {
         _ = c.SDL_SetRenderDrawColor(self.renderer, 255, 255, 255, 255);
 
         for (self.buffer, 0..) |value, index| {
-            if (value == 0) continue;
-            const x: c_int = @intCast(index % WIDTH);
-            const y: c_int = @intCast(@divTrunc(index, WIDTH));
-            _ = c.SDL_RenderDrawPoint(self.renderer, x, y);
+            if (value) {
+                const x: c_int = @intCast(index % WIDTH);
+                const y: c_int = @intCast(@divTrunc(index, WIDTH));
+                _ = c.SDL_RenderDrawPoint(self.renderer, x, y);
+            }
         }
         c.SDL_RenderPresent(self.renderer);
         self.needRender = false;
     }
 
-    pub fn setPixel(self: *Screen, x: usize, y: usize) bool {
+    pub fn setIndex(self: *Screen, i: usize) bool {
         self.needRender = true;
-        const index = x % WIDTH + (y % HEIGHT) * WIDTH;
-        const pixel = self.buffer[index];
-        if (pixel == 0) {
-            self.buffer[index] = 1;
-            return false;
-        } else {
-            self.buffer[index] = 0;
-            return true;
-        }
+        const index = if (i >= BUFFER_SIZE) i % BUFFER_SIZE else i;
+        self.buffer[index] = !self.buffer[index];
+        return self.buffer[index];
+    }
+
+    pub fn setPixel(self: *Screen, x: usize, y: usize) bool {
+        return self.setIndex(x + y * WIDTH);
     }
 
     pub fn clear(self: *Screen) void {
-        @memset(&self.buffer, 0);
+        @memset(&self.buffer, false);
         self.needRender = true;
     }
 

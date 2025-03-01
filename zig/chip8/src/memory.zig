@@ -1,4 +1,3 @@
-const std = @import("std");
 const Screen = @import("screen.zig").Screen;
 const Keypad = @import("keypad.zig").Keypad;
 
@@ -21,6 +20,14 @@ pub const Memory = struct {
         return (@as(u16, high) << 8) | self.ram[pc + 1];
     }
 
+    pub fn get(self: *Memory, index: usize) u8 {
+        return self.ram[index];
+    }
+
+    pub fn set(self: *Memory, index: usize, value: u8) void {
+        self.ram[index] = value;
+    }
+
     pub fn clearScreen(self: *Memory) void {
         var screen1 = self.screen;
         screen1.clear();
@@ -28,27 +35,6 @@ pub const Memory = struct {
 
     pub fn setPixel(self: *Memory, x: usize, y: usize) bool {
         return self.screen.setPixel(x, y);
-    }
-
-    pub fn set(self: *Memory, index: usize, value: u8) void {
-        self.ram[index] = value;
-    }
-
-    pub fn isPress(self: *Memory, index: usize) bool {
-        // std.log.info("is press index: {any}, result: {}", .{ index, self.keypad.buffer[index] });
-        return self.keypad.buffer[index];
-    }
-
-    pub fn getPress(self: *Memory) ?u8 {
-        // std.log.info("get press: {any}", .{self.keypad.buffer});
-        for (self.keypad.buffer, 0..) |code, index| {
-            if (code) return @truncate(index);
-        }
-        return null;
-    }
-
-    pub fn get(self: *Memory, index: usize) u8 {
-        return self.ram[index];
     }
 
     pub fn push(self: *Memory, value: u16) void {
@@ -59,6 +45,17 @@ pub const Memory = struct {
     pub fn pop(self: *Memory) u16 {
         self.sp -= 1;
         return self.stack[self.sp];
+    }
+
+    pub fn isPress(self: *Memory, index: usize) bool {
+        return self.keypad.buffer[index];
+    }
+
+    pub fn getPress(self: *Memory) ?u8 {
+        for (self.keypad.buffer, 0..) |code, index| {
+            if (code) return @truncate(index);
+        }
+        return null;
     }
 };
 

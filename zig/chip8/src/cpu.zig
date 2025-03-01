@@ -1,6 +1,6 @@
 const std = @import("std");
-const Memory = @import("memory.zig").Memory;
 const Instruct = @import("instruct.zig").Instruct;
+const Memory = @import("memory.zig").Memory;
 
 pub const CPU = struct {
     instruct: Instruct = undefined,
@@ -10,6 +10,15 @@ pub const CPU = struct {
     prng: std.rand.DefaultPrng,
     delay: u8 = 0,
     sound: u8 = 0,
+
+    pub fn new(entry: u16) CPU {
+        const seed = @as(u64, @intCast(std.time.timestamp()));
+        var prng = std.rand.DefaultPrng.init(seed);
+        return CPU{
+            .pc = entry,
+            .prng = prng,
+        };
+    }
 
     pub fn cycle(self: *CPU, memory: *Memory) void {
         self.fetch(memory);
@@ -94,7 +103,7 @@ pub const CPU = struct {
                 reg[0xF] = (reg[ins.x] >> 7) & 0x1;
                 reg[ins.x] = reg[ins.x] << 1;
             },
-            else => std.log.info("unknow opcode: 0x{X:0>4}", .{ins.opcode}),
+            else => std.log.info("unknown opcode: 0x{X:0>4}", .{ins.opcode}),
         }
     }
 
@@ -104,7 +113,7 @@ pub const CPU = struct {
         self.register[0xF] = if (result.@"1" == 0) 1 else 0;
     }
 
-    const width: u8 = 0x80; // 每个精灵的固定宽度
+    const width: u8 = 0x80;
     fn draw(self: *CPU, memory: *Memory) void {
         self.register[0xF] = 0;
         var rx = self.register[self.instruct.x];
@@ -114,7 +123,7 @@ pub const CPU = struct {
             for (0..8) |col| {
                 const shift = width >> @as(u3, @truncate(col));
                 if (sprite & shift == 0) continue;
-                if (memory.setPixel(rx + col, ry + row)) {
+                if (!memory.setPixel(rx + col, ry + row)) {
                     self.register[0xF] = 1;
                 }
             }
@@ -149,7 +158,7 @@ pub const CPU = struct {
                     self.register[i] = memory.get(self.index + i);
                 }
             },
-            else => std.log.info("unknow opcode: 0x{X:0>4}", .{ins.opcode}),
+            else => std.log.info("unknown opcode: 0x{X:0>4}", .{ins.opcode}),
         }
     }
 };
