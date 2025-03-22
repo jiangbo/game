@@ -1,0 +1,28 @@
+.{
+    .name = "demo",
+    .version = "0.0.0",
+    .dependencies = .{
+        .sokol = .{
+            .url = "git+https://github.com/floooh/sokol-zig.git#a292c3cea079c3c9de8a6b1c2fd79ddae472e088",
+            .hash = "1220072a0988c8ce53680094a04a6513cce6854d8f838a2a17d34bf9176da73023a2",
+        },
+        .zstbi = .{
+            .url = "git+https://github.com/zig-gamedev/zstbi#bcbd249f3f57fb84d6d76f1bc621c7bd3bfaa4a2",
+            .hash = "12208b7d15a730294a7d8ee3a9d3ef145e109f94d0a68be7f0ee282e0630ede093d5",
+        },
+        .zmath = .{
+            .url = "git+https://github.com/zig-gamedev/zmath#f40bb8a935b4878c707c3fccfd5c234cfcb43bf2",
+            .hash = "1220c1ab7d1e49106f59c6adb4004befdb95525a72056364a663757aaa1365aae64a",
+        },
+        .sdl = .{
+            .url = "git+https://github.com/castholm/SDL.git#2bb5f57ea8b8c43eabe514f7bbd3361365ba2ff3",
+            .hash = "1220f653f5b656888b522bf5be06fc3062278767cfa7764e5d00eb559056d65b616f",
+        },
+        .zaudio = .{
+            .url = "git+https://github.com/zig-gamedev/zaudio#a67604fdb79fb7e0b34fe074f8ffc22d268b3fb3",
+            .hash = "122029d6de1bebccfc3ab2816d6f163bb394a0f03861a74857b336c58ce6c5308662",
+        },
+    },
+
+    .paths = .{""},
+}
