@@ -1,0 +1,285 @@
+const std = @import("std");
+const zhu = @import("zhu");
+
+const window = zhu.window;
+const gfx = zhu.gfx;
+const camera = zhu.camera;
+
+const enemy = @import("enemy.zig");
+const item = @import("item.zig");
+const scene = @import("scene.zig");
+
+const Bullet = struct {
+    position: gfx.Vector, // 子弹的位置
+    dead: bool = true, // 子弹是否死亡
+};
+
+const SPEED = 300; // 玩家的移动速度
+const BULLET_SPEED = 600; // 子弹的速度
+const SCALE = 0.25; // 图片素材太大，缩小到四分之一
+const MAX_HEALTH = 3; // 玩家最大生命值
+
+var position: gfx.Vector = undefined; // 玩家的位置
+var texture: gfx.Texture = undefined; // 玩家的纹理
+var size: gfx.Vector = undefined; // 玩家的尺寸
+var health: u8 = undefined; // 玩家生命值
+
+var bulletTexture: gfx.Texture = undefined; // 子弹的纹理
+var bulletSize: gfx.Vector = undefined; // 子弹的尺寸
+var bullets: [10]Bullet = undefined; // 子弹数组
+
+// 子弹发射的间隔，每 0.3 秒可以发射一次
+var bulletTimer: zhu.window.Timer = .init(0.3);
+
+// 爆炸帧动画元数据
+const bombFrames: [9]gfx.Frame = blk: {
+    var frames: [9]gfx.Frame = undefined;
+    for (&frames, 0..) |*frame, i| {
+        const x: f32 = @floatFromInt(32 * i);
+        frame.area = .init(.init(x, 0), .init(32, 32));
+        frame.interval = 0.1;
+    }
+    break :blk frames;
+};
+var bombFrameAnimation: gfx.FrameAnimation = undefined;
+
+const BombAnimation = struct {
+    animation: gfx.FrameAnimation, // 爆炸动画
+    center: gfx.Vector, // 爆炸中心点
+};
+var bombAnimations: std.ArrayList(BombAnimation) = .empty;
+var bombed: bool = false; // 玩家是否爆炸
+
+var healthTexture: gfx.Texture = undefined; // 玩家生命值的纹理
+pub var score: u32 = 0; // 玩家得分
+var deadTimer: window.Timer = .init(3); // 玩家死亡计时器
+
+pub fn init() void {
+    texture = gfx.loadTexture("assets/image/SpaceShip.png", .init(241, 187));
+    // 图片太大了，缩小到四分之一
+    size = texture.size().scale(SCALE);
+
+    bulletTexture = gfx.loadTexture("assets/image/laser-1.png", .init(81, 126));
+    bulletSize = bulletTexture.size().scale(SCALE);
+
+    for (&bullets) |*bullet| bullet.dead = true; //初始时所有子弹都可用
+    // 初始化爆炸动画
+    const tex = gfx.loadTexture("assets/effect/explosion.png", .init(288, 32));
+    bombFrameAnimation = .init(tex, &bombFrames);
+    bombFrameAnimation.loop = false;
+
+    // 初始化玩家生命值图标
+    healthTexture = gfx.loadTexture("assets/image/Health UI Black.png", .init(32, 32));
+
+    item.init();
+    restart();
+}
+
+pub fn restart() void {
+    bombAnimations.clearRetainingCapacity();
+    item.items.clearRetainingCapacity();
+    // 初始化玩家位置
+    position = window.logicSize.sub(size).div(.init(2, 1));
+    bulletTimer.elapsed = 0; // 游戏开始就可以发射子弹
+    deadTimer.elapsed = 0;
+    bombed = false;
+    health = MAX_HEALTH;
+    score = 0;
+}
+
+pub fn update(delta: f32) void {
+    // 更新物品
+    item.update(delta);
+
+    // 子弹移动
+    updateBullets(delta);
+
+    // 更新动画，反向遍历，因为边遍历边删除
+    var bombs = std.mem.reverseIterator(bombAnimations.items);
+    while (bombs.nextPtr()) |bomb| {
+        if (bomb.animation.isFinishedAfterUpdate(delta)) {
+            // 动画结束后，删除动画
+            _ = bombAnimations.swapRemove(bombs.index);
+        }
+    }
+
+    if (health == 0) {
+        if (deadTimer.isFinishedAfterUpdate(delta)) {
+            // 计时器结束后，进入结束场景
+            scene.currentScene = .end;
+            scene.isTyping = true;
+            zhu.audio.playMusic("assets/music/06_Battle_in_Space_Intro.ogg");
+        }
+        // 玩家还没有爆炸动画，就添加一个
+        if (!bombed) {
+            bombed = true;
+            addBombAnimation(center());
+            zhu.audio.playSound("assets/sound/explosion1.ogg");
+        }
+        return; // 玩家死亡，不进行任何操作
+    }
+
+    // 玩家是否拾取物品
+    maybePickItem();
+
+    // 玩家键盘控制
+    const distance = SPEED * delta; // 根据时间调整移动距离
+    if (window.isKeyDown(.A)) position.x -= distance;
+    if (window.isKeyDown(.D)) position.x += distance;
+    if (window.isKeyDown(.W)) position.y -= distance;
+    if (window.isKeyDown(.S)) position.y += distance;
+
+    // 发射子弹。按下了按键，使用时间来控制发射子弹的间隔
+    if (bulletTimer.isFinishedAfterUpdate(delta) and window.isKeyDown(.J)) {
+        // 发射的位置：和玩家的 Y 坐标一样，在玩家的 X 中间
+        const pos = position.addX(size.x / 2).addX(-bulletSize.x / 2);
+        for (&bullets) |*bullet| {
+            if (bullet.dead) { // 找到一个未使用的子弹
+                bullet.* = .{ .position = pos, .dead = false };
+                break;
+            }
+        }
+        zhu.audio.playSound("assets/sound/laser_shoot4.ogg");
+        bulletTimer.elapsed = 0; // 重置计时器，玩家需要等到计时器结束才可以发射。
+    }
+
+    // 限制玩家的移动边界
+    position = position.clamp(.zero, window.logicSize.sub(size));
+
+    // 玩家和敌机的碰撞
+    const playerRect = gfx.Rect.init(position, size);
+    var iterator = std.mem.reverseIterator(enemy.enemies.items);
+    while (iterator.nextPtr()) |ptr| {
+        if (health == 0) break;
+        const rect: gfx.Rect = .init(ptr.position, enemy.size);
+        if (!rect.intersect(playerRect)) continue; // 不相交，检测下一个
+        health -= 1; // 碰撞，减少一点血量。敌机直接销毁，不关注血量
+        _ = enemy.enemies.swapRemove(iterator.index);
+        addBombAnimation(rect.center()); // 添加爆炸动画
+    }
+}
+
+fn maybePickItem() void {
+    // 玩家是否拾取物品
+    const playerRect = gfx.Rect.init(position, size);
+    var iterator = std.mem.reverseIterator(item.items.items);
+    while (iterator.nextPtr()) |ptr| {
+        if (playerRect.contains(ptr.position)) {
+            // 拾取物品，增加一点血量
+            _ = item.items.swapRemove(iterator.index);
+            if (health < MAX_HEALTH) health += 1;
+            score += 5;
+            zhu.audio.playSound("assets/sound/eff5.ogg");
+        }
+    }
+}
+
+fn updateBullets(delta: f32) void {
+    for (&bullets) |*bullet| {
+        if (bullet.dead) continue;
+
+        // 子弹存活，才进行位置更新
+        bullet.position.y -= BULLET_SPEED * delta; // 向上移动
+        // 判断子弹是否超出屏幕，不是 Y 到 0，而是完全超出
+        if (bullet.position.y < -bulletSize.y) {
+            bullet.dead = true;
+            continue;
+        }
+
+        // 玩家子弹的碰撞检测，用子弹的中心点检测感觉效果好一点
+        const bulletCenter = bullet.position.add(bulletSize.scale(0.5));
+        if (collideEnemy(bulletCenter)) bullet.dead = true;
+    }
+}
+
+fn addBombAnimation(bombCenter: gfx.Vector) void {
+    bombAnimations.append(window.allocator, .{
+        .animation = bombFrameAnimation,
+        .center = bombCenter,
+    }) catch @panic("add bomb oom");
+}
+
+fn collideEnemy(bullet: gfx.Vector) bool {
+    // 反向遍历，支持遍历时删除
+    var iterator = std.mem.reverseIterator(enemy.enemies.items);
+    while (iterator.nextPtr()) |ptr| {
+        const rect: gfx.Rect = .init(ptr.position, enemy.size);
+        if (!rect.contains(bullet)) continue; // 不相交，检测下一个
+
+        ptr.health -|= 1; // 碰撞，减少一点血量
+        if (ptr.health == 0) { // 血量为 0 ，进行销毁。
+            item.maybeDropItem(rect.center()); // 掉落道具
+            _ = enemy.enemies.swapRemove(iterator.index);
+            score += 10;
+            addBombAnimation(rect.center()); // 添加爆炸动画
+            zhu.audio.playSound("assets/sound/explosion3.ogg");
+        }
+        zhu.audio.playSound("assets/sound/eff11.ogg");
+        return true;
+    }
+    return false;
+}
+
+pub fn center() gfx.Vector {
+    // 玩家的中心位置
+    return gfx.Rect.init(position, size).center();
+}
+
+pub fn collidePlayer(enemyBulletPosition: gfx.Vector) bool {
+    if (health == 0) return false; // 玩家死亡，不碰撞
+    // 玩家的碰撞矩形
+    const rect = gfx.Rect.init(position, size);
+    if (rect.contains(enemyBulletPosition)) {
+        health -= 1; // 碰撞，减少一点血量
+        return true;
+    }
+    return false;
+}
+
+pub fn draw() void {
+    // 先绘制子弹，再绘制玩家，让子弹在玩家的下面
+    for (&bullets) |bullet| {
+        if (bullet.dead) continue; // 子弹存活才绘制
+        camera.drawOption(bulletTexture, bullet.position, .{
+            .size = bulletSize,
+        });
+    }
+
+    item.draw(); // 绘制掉落的物品
+
+    if (health != 0) {
+        // 绘制玩家
+        camera.drawOption(texture, position, .{ .size = size });
+    }
+
+    // 绘制爆炸动画
+    for (bombAnimations.items) |bomb| {
+        const currentTexture = bomb.animation.currentTexture();
+        camera.drawOption(currentTexture, bomb.center, .{
+            .anchor = .center,
+            .size = currentTexture.size().scale(2), // 爆炸动画太小
+        });
+    }
+
+    // 绘制血量
+    for (0..MAX_HEALTH) |index| {
+        var color: gfx.Color = .init(0.4, 0.4, 0.4, 1);
+        if (health > index) color = .one;
+        const i: f32 = @floatFromInt(index);
+        camera.drawOption(healthTexture, .init(10 + i * 40, 10), .{
+            .color = color,
+        });
+    }
+
+    // 绘制分数
+    var buffer: [50]u8 = undefined;
+    const text = zhu.format(&buffer, "SCORE:{}", .{score});
+    const x = window.logicSize.x - camera.computeTextWidth(text) - 10;
+    camera.drawText(text, .init(x, 10));
+}
+
+pub fn deinit() void {
+    // 释放分配的内存
+    bombAnimations.deinit(window.allocator);
+    item.items.deinit(window.allocator);
+}
