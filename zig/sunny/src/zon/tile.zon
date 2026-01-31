@@ -1,0 +1,628 @@
+.{
+    .{
+        .id = 1780197249,
+        .columns = 0,
+        .tileCount = 6,
+        .image = 0,
+        .tiles = .{
+            .{
+                .id = 4074740279,
+                .objectGroup = .{ .visible = true, .objects = .{.{
+                    .gid = 0,
+                    .position = .{ .x = 3, .y = 14.363636 },
+                    .size = .{ .x = 32, .y = 24.636364 },
+                    .point = false,
+                    .properties = .{},
+                    .rotation = 0,
+                }} },
+                .properties = .{
+                    .{ .name = "animation", .value = .{ .string = "{\n  \"fly\": {\"frames\": [0,1,2,3]}\n}" } },
+                    .{ .name = "health", .value = .{ .int = 1 } },
+                    .{ .name = "tag", .value = .{ .string = "enemy" } },
+                },
+            },
+            .{
+                .id = 2387647068,
+                .objectGroup = .{ .visible = true, .objects = .{.{
+                    .gid = 0,
+                    .position = .{ .x = 11, .y = 13 },
+                    .size = .{ .x = 11, .y = 19 },
+                    .point = false,
+                    .properties = .{},
+                    .rotation = 0,
+                }} },
+                .properties = .{
+                    .{ .name = "animation", .value = .{ .string = "{\n  \"idle\": {\"duration\": 200, \"row\":0, \"frames\":[0,1,2,3,2,1]},\n  \"walk\": {\"row\":1, \"frames\":[0,1,2,3,4,5]},\n  \"climb\":{\"row\":2, \"frames\":[0,1,2,3]},\n  \"hurt\": {\"row\":4, \"frames\":[0,1]},\n  \"jump\": {\"row\":5, \"frames\":[0]},\n  \"fall\": {\"row\":5, \"frames\":[1]}\n}" } },
+                    .{ .name = "gravity", .value = .{ .bool = true } },
+                    .{ .name = "health", .value = .{ .int = 3 } },
+                    .{ .name = "sound", .value = .{ .string = "{\n  \"jump\":\"assets/audio/cartoon-jump-6462.mp3\",\n  \"hurt\":\"assets/audio/monster.mp3\",\n  \"dead\":\"assets/audio/dead-8bit-41400.mp3\"\n}" } },
+                    .{ .name = "tag", .value = .{ .string = "player" } },
+                },
+            },
+            .{
+                .id = 1813233282,
+                .objectGroup = .{ .visible = true, .objects = .{.{
+                    .gid = 0,
+                    .position = .{ .x = 4, .y = 8 },
+                    .size = .{ .x = 26, .y = 19 },
+                    .point = false,
+                    .properties = .{},
+                    .rotation = 0,
+                }} },
+                .properties = .{
+                    .{ .name = "animation", .value = .{ .string = "{\n  \"idle\": {\"duration\": 300, \"frames\":[0,1,2,3]},\n  \"jump\": {\"row\": 1, \"frames\":[1]},\n  \"fall\": {\"row\": 1, \"frames\":[2]}\n}" } },
+                    .{ .name = "gravity", .value = .{ .bool = true } },
+                    .{ .name = "health", .value = .{ .int = 1 } },
+                    .{ .name = "sound", .value = .{ .string = "{\n  \"cry\":\"assets/audio/frog_quak-81741.mp3\"\n}" } },
+                    .{ .name = "tag", .value = .{ .string = "enemy" } },
+                },
+            },
+            .{
+                .id = 2551011042,
+                .objectGroup = .{ .visible = true, .objects = .{.{
+                    .gid = 0,
+                    .position = .{ .x = 1, .y = 2 },
+                    .size = .{ .x = 28, .y = 25 },
+                    .point = false,
+                    .properties = .{},
+                    .rotation = 0,
+                }} },
+                .properties = .{
+                    .{ .name = "animation", .value = .{ .string = "{\n  \"walk\": {\"frames\":[0,1,2,3,4,5]}\n}" } },
+                    .{ .name = "gravity", .value = .{ .bool = true } },
+                    .{ .name = "health", .value = .{ .int = 1 } },
+                    .{ .name = "tag", .value = .{ .string = "enemy" } },
+                },
+            },
+            .{
+                .id = 1541009959,
+                .objectGroup = .{ .visible = true, .objects = .{.{
+                    .gid = 0,
+                    .position = .{ .x = 0, .y = 3 },
+                    .size = .{ .x = 17, .y = 15 },
+                    .point = false,
+                    .properties = .{},
+                    .rotation = 0,
+                }} },
+                .properties = .{ .{ .name = "animation", .value = .{ .string = "{\n  \"idle\": {\"duration\": 200, \"frames\":[0,1,2,3,4,3,2,1]}\n}" } }, .{ .name = "tag", .value = .{ .string = "item" } } },
+            },
+            .{
+                .id = 2366733735,
+                .objectGroup = .{ .visible = true, .objects = .{.{
+                    .gid = 0,
+                    .position = .{ .x = 1, .y = 1 },
+                    .size = .{ .x = 13, .y = 11 },
+                    .point = false,
+                    .properties = .{},
+                    .rotation = 0,
+                }} },
+                .properties = .{ .{ .name = "animation", .value = .{ .string = "{\n  \"idle\": {\"duration\": 200, \"frames\":[0,1,2,3,4]}\n}" } }, .{ .name = "tag", .value = .{ .string = "item" } } },
+            },
+        },
+    },
+    .{
+        .id = 1480767691,
+        .columns = 0,
+        .tileCount = 30,
+        .image = 0,
+        .tiles = .{
+            .{
+                .id = 3248236866,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 2833280073,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 3375368496,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 1557877935,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 496194414,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 2143942850,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 392310147,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 4268294481,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 2137537212,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 4169676360,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 579324757,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 1498767374,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 4119143164,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 3863900726,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 3603729398,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 4143698534,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 0,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 2375837115,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 1644997518,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 3595674077,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 3415869239,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 81564149,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 1418060950,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 2194072341,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 1347189144,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 3309852245,
+                .objectGroup = .{ .visible = true, .objects = .{.{
+                    .gid = 0,
+                    .position = .{ .x = 0, .y = 0 },
+                    .size = .{ .x = 15, .y = 9 },
+                    .point = false,
+                    .properties = .{},
+                    .rotation = 0,
+                }} },
+                .properties = .{.{ .name = "hazard", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 13526351,
+                .objectGroup = .{ .visible = true, .objects = .{.{
+                    .gid = 0,
+                    .position = .{ .x = 0, .y = 1 },
+                    .size = .{ .x = 15, .y = 9 },
+                    .point = false,
+                    .properties = .{},
+                    .rotation = 0,
+                }} },
+                .properties = .{.{ .name = "hazard", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 1234093972,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 3484629125,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 3484583788,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 1452977303,
+                .objectGroup = null,
+                .properties = .{},
+            },
+        },
+    },
+    .{
+        .id = 3575844808,
+        .columns = 25,
+        .tileCount = 575,
+        .image = 4028359118,
+        .tiles = .{
+            .{
+                .id = 0,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 26,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 28,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 30,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 32,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 34,
+                .objectGroup = null,
+                .properties = .{.{ .name = "unisolid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 35,
+                .objectGroup = null,
+                .properties = .{.{ .name = "unisolid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 36,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 38,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "0_2" } }},
+            },
+            .{
+                .id = 39,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "2_1" } }},
+            },
+            .{
+                .id = 41,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "1_2" } }},
+            },
+            .{
+                .id = 42,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "2_0" } }},
+            },
+            .{
+                .id = 44,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "0_2" } }},
+            },
+            .{
+                .id = 45,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "2_1" } }},
+            },
+            .{
+                .id = 47,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "1_2" } }},
+            },
+            .{
+                .id = 48,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "2_0" } }},
+            },
+            .{
+                .id = 63,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 64,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 66,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 67,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 69,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 70,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 72,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 73,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 76,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 80,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 82,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 83,
+                .objectGroup = null,
+                .properties = .{.{ .name = "unisolid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 85,
+                .objectGroup = null,
+                .properties = .{.{ .name = "unisolid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 86,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 114,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "0_1" } }},
+            },
+            .{
+                .id = 116,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "1_0" } }},
+            },
+            .{
+                .id = 120,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "0_1" } }},
+            },
+            .{
+                .id = 122,
+                .objectGroup = null,
+                .properties = .{.{ .name = "slope", .value = .{ .string = "1_0" } }},
+            },
+            .{
+                .id = 126,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 128,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 130,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 132,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 133,
+                .objectGroup = null,
+                .properties = .{.{ .name = "unisolid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 134,
+                .objectGroup = null,
+                .properties = .{.{ .name = "unisolid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 139,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 141,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 145,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 147,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 180,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 182,
+                .objectGroup = null,
+                .properties = .{},
+            },
+            .{
+                .id = 190,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 192,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 194,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 240,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 244,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 257,
+                .objectGroup = null,
+                .properties = .{.{ .name = "ladder", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 261,
+                .objectGroup = null,
+                .properties = .{.{ .name = "unisolid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 290,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 292,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 294,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 332,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 334,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 336,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 338,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 365,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 367,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 369,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 501,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 503,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 504,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 528,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+            .{
+                .id = 529,
+                .objectGroup = null,
+                .properties = .{.{ .name = "solid", .value = .{ .bool = true } }},
+            },
+        },
+    },
+}
