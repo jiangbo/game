@@ -1,0 +1,19 @@
+.{
+    .level = 1,
+    .point = 0,
+    .units = .{
+        .{ .name = "加尔隆", .face = 0, .class = .warrior, .level = 1, .rarity = 1 },
+        .{ .name = "伊索尔德", .face = 1, .class = .warrior, .level = 2, .rarity = 1 },
+        .{ .name = "布鲁南", .face = 2, .class = .warrior, .level = 2, .rarity = 2 },
+        .{ .name = "莱拉娜", .face = 3, .class = .archer, .level = 1, .rarity = 1 },
+        .{ .name = "凯伦", .face = 4, .class = .archer, .level = 2, .rarity = 1 },
+        .{ .name = "芬恩", .face = 5, .class = .archer, .level = 1, .rarity = 2 },
+        .{ .name = "西瑞娅", .face = 6, .class = .archer, .level = 2, .rarity = 2 },
+        .{ .name = "罗兰", .face = 7, .class = .lancer, .level = 1, .rarity = 1 },
+        .{ .name = "莫迪凯", .face = 8, .class = .lancer, .level = 2, .rarity = 1 },
+        .{ .name = "伊格纳茨", .face = 9, .class = .lancer, .level = 2, .rarity = 2 },
+        .{ .name = "摩根娜", .face = 10, .class = .witch, .level = 1, .rarity = 1 },
+        .{ .name = "希尔维娅", .face = 11, .class = .witch, .level = 2, .rarity = 1 },
+        .{ .name = "赫卡", .face = 12, .class = .witch, .level = 2, .rarity = 2 },
+    },
+}

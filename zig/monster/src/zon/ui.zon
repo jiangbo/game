@@ -1,0 +1,30 @@
+.{
+    .icon = .{
+        .{ .name = "warrior", .image = "assets/textures/UI/weapon_icon.png", .rect = .{ .min = .{ .x = 96, .y = 128 }, .size = .{ .x = 32, .y = 32 } } },
+        .{ .name = "archer", .image = "assets/textures/UI/weapon_icon.png", .rect = .{ .min = .{ .x = 352, .y = 128 }, .size = .{ .x = 32, .y = 32 } } },
+        .{ .name = "lancer", .image = "assets/textures/UI/weapon_icon.png", .rect = .{ .min = .{ .x = 128, .y = 32 }, .size = .{ .x = 32, .y = 32 } } },
+        .{ .name = "witch", .image = "assets/textures/UI/weapon_icon.png", .rect = .{ .min = .{ .x = 96, .y = 96 }, .size = .{ .x = 32, .y = 32 } } },
+    },
+    .border = .{
+        .{ .name = "common", .image = "assets/textures/UI/frame.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 64, .y = 64 } } },
+        .{ .name = "rare", .image = "assets/textures/UI/frame.png", .rect = .{ .min = .{ .x = 64, .y = 0 }, .size = .{ .x = 64, .y = 64 } } },
+    },
+    .face = .{
+        .{ .name = "加尔隆", .image = "assets/textures/UI/portraits/yhmv007.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 144, .y = 144 } } },
+        .{ .name = "伊索尔德", .image = "assets/textures/UI/portraits/yhmv079.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 144, .y = 144 } } },
+        .{ .name = "布鲁南", .image = "assets/textures/UI/portraits/yhmv076.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 144, .y = 144 } } },
+        .{ .name = "莱拉娜", .image = "assets/textures/UI/portraits/yhmv010.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 144, .y = 144 } } },
+        .{ .name = "凯伦", .image = "assets/textures/UI/portraits/sry1.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 96, .y = 96 } } },
+        .{ .name = "芬恩", .image = "assets/textures/UI/portraits/yhmv146.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 144, .y = 144 } } },
+        .{ .name = "西瑞娅", .image = "assets/textures/UI/portraits/yhmv150b.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 144, .y = 144 } } },
+        .{ .name = "罗兰", .image = "assets/textures/UI/portraits/yhmv241.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 144, .y = 144 } } },
+        .{ .name = "莫迪凯", .image = "assets/textures/UI/portraits/yhmv239.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 144, .y = 144 } } },
+        .{ .name = "伊格纳茨", .image = "assets/textures/UI/portraits/yhmv355.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 144, .y = 144 } } },
+        .{ .name = "摩根娜", .image = "assets/textures/UI/portraits/sry2.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 96, .y = 96 } } },
+        .{ .name = "希尔维娅", .image = "assets/textures/UI/portraits/sry3.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 96, .y = 96 } } },
+        .{ .name = "赫卡", .image = "assets/textures/UI/portraits/yhmv127_2.png", .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 144, .y = 144 } } },
+    },
+    .padding = 10,
+    .frameSize = .{ .x = 128, .y = 128 },
+    .fontOffset = .{ .x = 16, .y = 72 },
+}

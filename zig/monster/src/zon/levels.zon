@@ -1,0 +1,81 @@
+.{
+    .{
+        .prepTime = 5,
+        .enemyLevel = 1,
+        .enemyRarity = 1,
+        .waves = .{
+            .{
+                .enemies = .{
+                    .{ .class = .slime, .count = 8 },
+                    .{ .class = .wolf, .count = 2 },
+                },
+                .nextWaveInterval = 20,
+                .spawnInterval = 0.8,
+            },
+            .{
+                .enemies = .{
+                    .{ .class = .slime, .count = 5 },
+                    .{ .class = .wolf, .count = 3 },
+                    .{ .class = .goblin, .count = 2 },
+                },
+                .nextWaveInterval = 20,
+                .spawnInterval = 0.5,
+            },
+            .{
+                .enemies = .{
+                    .{ .class = .slime, .count = 2 },
+                    .{ .class = .wolf, .count = 3 },
+                    .{ .class = .goblin, .count = 5 },
+                    .{ .class = .darkWitch, .count = 1 },
+                },
+                .nextWaveInterval = 20,
+                .spawnInterval = 0.5,
+            },
+        },
+    },
+    .{
+        .prepTime = 5,
+        .enemyLevel = 2,
+        .enemyRarity = 1,
+        .waves = .{
+            .{
+                .enemies = .{
+                    .{ .class = .slime, .count = 8 },
+                    .{ .class = .wolf, .count = 2 },
+                    .{ .class = .darkWitch, .count = 1 },
+                },
+                .nextWaveInterval = 20,
+                .spawnInterval = 0.8,
+            },
+            .{
+                .enemies = .{
+                    .{ .class = .slime, .count = 5 },
+                    .{ .class = .wolf, .count = 3 },
+                    .{ .class = .goblin, .count = 2 },
+                    .{ .class = .darkWitch, .count = 2 },
+                },
+                .nextWaveInterval = 20,
+                .spawnInterval = 0.5,
+            },
+            .{
+                .enemies = .{
+                    .{ .class = .slime, .count = 2 },
+                    .{ .class = .wolf, .count = 3 },
+                    .{ .class = .goblin, .count = 5 },
+                    .{ .class = .darkWitch, .count = 2 },
+                },
+                .nextWaveInterval = 20,
+                .spawnInterval = 0.5,
+            },
+            .{
+                .enemies = .{
+                    .{ .class = .wolf, .count = 4 },
+                    .{ .class = .goblin, .count = 5 },
+                    .{ .class = .darkWitch, .count = 3 },
+                },
+                .nextWaveInterval = 20,
+                .spawnInterval = 0.5,
+            },
+        },
+    },
+}
