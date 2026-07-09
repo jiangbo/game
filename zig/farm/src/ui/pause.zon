@@ -1,0 +1,362 @@
+.{
+    .cancelEvent = 0,
+    .navKeys = .{ .cancel = .{ .ESCAPE, .P } },
+    .hoverSound = "audio/Fantasy_UI (1).ogg",
+    .clickSound = "audio/Fantasy_UI (10).ogg",
+    .buttons = .{
+        .{
+            .label = "Resume",
+            .event = 0,
+            .rect = .{
+                .min = .{ .x = 24, .y = 46 },
+                .size = .{ .x = 160, .y = 32 },
+            },
+            .patch = .{
+                .min = .{ .x = 3, .y = 5 },
+                .max = .{ .x = 3, .y = 5 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.99, .g = 0.91, .b = 0.53 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 32 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.6, .g = 0.6, .b = 0.6 },
+                },
+            },
+        },
+        .{
+            .label = "Save",
+            .event = 1,
+            .rect = .{
+                .min = .{ .x = 24, .y = 84 },
+                .size = .{ .x = 160, .y = 32 },
+            },
+            .patch = .{
+                .min = .{ .x = 3, .y = 5 },
+                .max = .{ .x = 3, .y = 5 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.99, .g = 0.91, .b = 0.53 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 32 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.6, .g = 0.6, .b = 0.6 },
+                },
+            },
+            .disabled = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.4, .g = 0.4, .b = 0.4 },
+                },
+            },
+        },
+        .{
+            .label = "Load",
+            .event = 2,
+            .rect = .{
+                .min = .{ .x = 24, .y = 122 },
+                .size = .{ .x = 160, .y = 32 },
+            },
+            .patch = .{
+                .min = .{ .x = 3, .y = 5 },
+                .max = .{ .x = 3, .y = 5 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.99, .g = 0.91, .b = 0.53 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 32 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.6, .g = 0.6, .b = 0.6 },
+                },
+            },
+            .disabled = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.4, .g = 0.4, .b = 0.4 },
+                },
+            },
+        },
+        .{
+            .label = "Title",
+            .event = 3,
+            .rect = .{
+                .min = .{ .x = 24, .y = 160 },
+                .size = .{ .x = 160, .y = 32 },
+            },
+            .patch = .{
+                .min = .{ .x = 3, .y = 5 },
+                .max = .{ .x = 3, .y = 5 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.99, .g = 0.91, .b = 0.53 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 32 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.6, .g = 0.6, .b = 0.6 },
+                },
+            },
+            .disabled = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.4, .g = 0.4, .b = 0.4 },
+                },
+            },
+        },
+        .{
+            .event = 4,
+            .rect = .{
+                .min = .{ .x = 24, .y = 212 },
+                .size = .{ .x = 32, .y = 32 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 384, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 384, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 384, .y = 32 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+        },
+        .{
+            .event = 5,
+            .rect = .{
+                .min = .{ .x = 152, .y = 212 },
+                .size = .{ .x = 32, .y = 32 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 368, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 368, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 368, .y = 32 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+        },
+        .{
+            .event = 6,
+            .rect = .{
+                .min = .{ .x = 24, .y = 250 },
+                .size = .{ .x = 32, .y = 32 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 256, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 256, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 256, .y = 32 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+        },
+        .{
+            .event = 7,
+            .rect = .{
+                .min = .{ .x = 152, .y = 250 },
+                .size = .{ .x = 32, .y = 32 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 240, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 240, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 240, .y = 32 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+        },
+        .{
+            .event = 8,
+            .rect = .{
+                .min = .{ .x = 24, .y = 288 },
+                .size = .{ .x = 32, .y = 32 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 256, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 256, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 256, .y = 32 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+        },
+        .{
+            .event = 9,
+            .rect = .{
+                .min = .{ .x = 152, .y = 288 },
+                .size = .{ .x = 32, .y = 32 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 240, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 240, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 240, .y = 32 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+            },
+        },
+    },
+}

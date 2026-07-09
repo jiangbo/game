@@ -1,0 +1,177 @@
+.{
+    .cancelEvent = 3,
+    .navKeys = .{ .cancel = .{ .ESCAPE, .P } },
+    .overlay = .{ .r = 0, .g = 0, .b = 0, .a = 0.28 },
+    .panel = .{
+        .size = .{ .x = 280, .y = 152 },
+        .color = .{ .r = 0, .g = 0, .b = 0, .a = 0.86 },
+    },
+    .title = .{
+        .text = "Rest",
+        .position = .{ .x = 140, .y = 34 },
+    },
+    .hoverSound = "audio/Fantasy_UI (1).ogg",
+    .clickSound = "audio/Fantasy_UI (10).ogg",
+    .buttons = .{
+        .{
+            .label = "-",
+            .event = 0,
+            .rect = .{
+                .min = .{ .x = 50, .y = 66 },
+                .size = .{ .x = 48, .y = 32 },
+            },
+            .patch = .{
+                .min = .{ .x = 3, .y = 5 },
+                .max = .{ .x = 3, .y = 5 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.99, .g = 0.91, .b = 0.53 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 32 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .offset = .{ .x = 0, .y = 2 },
+                    .color = .{ .r = 0.6, .g = 0.6, .b = 0.6 },
+                },
+            },
+        },
+        .{
+            .label = "+",
+            .event = 1,
+            .rect = .{
+                .min = .{ .x = 182, .y = 66 },
+                .size = .{ .x = 48, .y = 32 },
+            },
+            .patch = .{
+                .min = .{ .x = 3, .y = 5 },
+                .max = .{ .x = 3, .y = 5 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.99, .g = 0.91, .b = 0.53 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 32 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .offset = .{ .x = 0, .y = 2 },
+                    .color = .{ .r = 0.6, .g = 0.6, .b = 0.6 },
+                },
+            },
+        },
+        .{
+            .label = "OK",
+            .event = 2,
+            .rect = .{
+                .min = .{ .x = 34, .y = 110 },
+                .size = .{ .x = 100, .y = 32 },
+            },
+            .patch = .{
+                .min = .{ .x = 3, .y = 5 },
+                .max = .{ .x = 3, .y = 5 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.99, .g = 0.91, .b = 0.53 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 32 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .offset = .{ .x = 0, .y = 2 },
+                    .color = .{ .r = 0.6, .g = 0.6, .b = 0.6 },
+                },
+            },
+        },
+        .{
+            .label = "Cancel",
+            .event = 3,
+            .rect = .{
+                .min = .{ .x = 146, .y = 110 },
+                .size = .{ .x = 100, .y = 32 },
+            },
+            .patch = .{
+                .min = .{ .x = 3, .y = 5 },
+                .max = .{ .x = 3, .y = 5 },
+            },
+            .normal = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+            },
+            .hover = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .color = .{ .r = 0.99, .g = 0.91, .b = 0.53 },
+                },
+            },
+            .pressed = .{
+                .image = 2508770722,
+                .source = .{
+                    .min = .{ .x = 0, .y = 32 },
+                    .size = .{ .x = 48, .y = 16 },
+                },
+                .text = .{
+                    .offset = .{ .x = 0, .y = 2 },
+                    .color = .{ .r = 0.6, .g = 0.6, .b = 0.6 },
+                },
+            },
+        },
+    },
+}

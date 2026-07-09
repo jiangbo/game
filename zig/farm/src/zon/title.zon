@@ -1,0 +1,165 @@
+.{
+    // 标题页中间主菜单
+    .{
+        .hoverSound = "audio/Fantasy_UI (1).ogg",
+        .clickSound = "audio/Fantasy_UI (10).ogg",
+        .buttons = .{
+            .{
+                .label = "Start",
+                .event = 0,
+                .rect = .{
+                    .min = .{ .x = 272, .y = 198 },
+                    .size = .{ .x = 96, .y = 32 },
+                },
+                .patch = .{
+                    .min = .{ .x = 3, .y = 5 },
+                    .max = .{ .x = 3, .y = 5 },
+                },
+                .normal = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 0, .y = 64 },
+                        .size = .{ .x = 48, .y = 16 },
+                    },
+                },
+                .hover = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 0, .y = 64 },
+                        .size = .{ .x = 48, .y = 16 },
+                    },
+                    .text = .{
+                        .color = .{ .r = 0.99, .g = 0.91, .b = 0.53 },
+                        .offset = .{ .x = 0, .y = -0.5 },
+                    },
+                },
+                .pressed = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 0, .y = 80 },
+                        .size = .{ .x = 48, .y = 16 },
+                    },
+                    .text = .{
+                        .color = .{ .r = 0.6, .g = 0.6, .b = 0.6 },
+                        .offset = .{ .x = 0, .y = 2 },
+                    },
+                },
+            },
+            .{
+                .label = "Load",
+                .event = 1,
+                .rect = .{
+                    .min = .{ .x = 272, .y = 246 },
+                    .size = .{ .x = 96, .y = 32 },
+                },
+                .patch = .{
+                    .min = .{ .x = 3, .y = 5 },
+                    .max = .{ .x = 3, .y = 5 },
+                },
+                .normal = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 0, .y = 64 },
+                        .size = .{ .x = 48, .y = 16 },
+                    },
+                },
+                .hover = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 0, .y = 64 },
+                        .size = .{ .x = 48, .y = 16 },
+                    },
+                    .text = .{
+                        .color = .{ .r = 0.99, .g = 0.91, .b = 0.53 },
+                        .offset = .{ .x = 0, .y = -1 },
+                    },
+                },
+                .pressed = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 0, .y = 80 },
+                        .size = .{ .x = 48, .y = 16 },
+                    },
+                    .text = .{
+                        .color = .{ .r = 0.6, .g = 0.6, .b = 0.6 },
+                        .offset = .{ .x = 0, .y = 2 },
+                    },
+                },
+            },
+            .{
+                .label = "Exit",
+                .event = 2,
+                .rect = .{
+                    .min = .{ .x = 272, .y = 294 },
+                    .size = .{ .x = 96, .y = 32 },
+                },
+                .patch = .{
+                    .min = .{ .x = 3, .y = 5 },
+                    .max = .{ .x = 3, .y = 5 },
+                },
+                .normal = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 0, .y = 64 },
+                        .size = .{ .x = 48, .y = 16 },
+                    },
+                },
+                .hover = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 0, .y = 64 },
+                        .size = .{ .x = 48, .y = 16 },
+                    },
+                    .text = .{
+                        .color = .{ .r = 0.99, .g = 0.91, .b = 0.53 },
+                        .offset = .{ .x = 0, .y = -1 },
+                    },
+                },
+                .pressed = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 0, .y = 80 },
+                        .size = .{ .x = 48, .y = 16 },
+                    },
+                    .text = .{
+                        .color = .{ .r = 0.6, .g = 0.6, .b = 0.6 },
+                        .offset = .{ .x = 0, .y = 2 },
+                    },
+                },
+            },
+        },
+    },
+    // 标题页右上角暂停按钮
+    .{
+        .buttons = .{
+            .{
+                .event = 0,
+                .rect = .{
+                    .min = .{ .x = 0, .y = 0 },
+                    .size = .{ .x = 32, .y = 32 },
+                },
+                .normal = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 432, .y = 208 },
+                        .size = .{ .x = 16, .y = 16 },
+                    },
+                },
+                .hover = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 432, .y = 208 },
+                        .size = .{ .x = 16, .y = 16 },
+                    },
+                },
+                .pressed = .{
+                    .image = 2508770722,
+                    .source = .{
+                        .min = .{ .x = 432, .y = 224 },
+                        .size = .{ .x = 16, .y = 16 },
+                    },
+                },
+            },
+        },
+    },
+}

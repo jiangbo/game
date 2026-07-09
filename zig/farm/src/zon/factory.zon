@@ -1,0 +1,585 @@
+.{
+    .player = .{
+        // .path = "farm-rpg/Character and Portrait/Character/Pre-made/Alex/Idle.png",
+        .sprite = .{
+            .imageId = 2802575066,
+            .rect = .{
+                .min = .{ .x = 0, .y = 0 },
+                .size = .{ .x = 32, .y = 32 },
+            },
+            .size = .{ .x = 32, .y = 32 },
+            .offset = .{ .x = -16, .y = -24 },
+        },
+        .rows = .{ 1, 2, -3, 3 },
+        .animations = .{
+            .{ // 0: idle
+                .type = .idle,
+                // .path = "farm-rpg/Character and Portrait/Character/Pre-made/Alex/Idle.png",
+                .imageId = 2802575066,
+                .frames = .{
+                    .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.2 },
+                    .{ .offset = .{ .x = 32, .y = 0 }, .duration = 0.2 },
+                    .{ .offset = .{ .x = 64, .y = 0 }, .duration = 0.2 },
+                    .{ .offset = .{ .x = 96, .y = 0 }, .duration = 0.2 },
+                },
+            },
+            .{ // 1: walk
+                .type = .walk,
+                // .path = "farm-rpg/Character and Portrait/Character/Pre-made/Alex/Walk.png",
+                .imageId = 535056189,
+                .frames = .{
+                    .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 32, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 64, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 96, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 128, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 160, .y = 0 }, .duration = 0.1 },
+                },
+            },
+            .{ // 2: hoe
+                .type = .hoe,
+                // .path = "farm-rpg/Character and Portrait/Character/Pre-made/Alex/Hoe.png",
+                .imageId = 2082138294,
+                .frames = .{
+                    .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 32, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 64, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 96, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 128, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 160, .y = 0 }, .duration = 0.1, .extend = 1 },
+                },
+            },
+            .{ // 3: watering
+                .type = .watering,
+                // .path = "farm-rpg/Character and Portrait/Character/Pre-made/Alex/Watering.png",
+                .imageId = 1853782309,
+                .frames = .{
+                    .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 32, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 64, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 96, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 128, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 160, .y = 0 }, .duration = 0.1, .extend = 1 },
+                    .{ .offset = .{ .x = 192, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 224, .y = 0 }, .duration = 0.1 },
+                },
+            },
+            .{ // 4: planting
+                .type = .planting,
+                // .path = "farm-rpg/Character and Portrait/Character/Pre-made/Alex/Throwing items.png",
+                .imageId = 1015570928,
+                .frames = .{
+                    .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 32, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 64, .y = 0 }, .duration = 0.1, .extend = 1 },
+                    .{ .offset = .{ .x = 96, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 128, .y = 0 }, .duration = 0.1 },
+                },
+            },
+            .{ // 5: sickle
+                .type = .sickle,
+                // .path = "farm-rpg/Character and Portrait/Character/Pre-made/Alex/Sickle.png",
+                .imageId = 3515628865,
+                .frames = .{
+                    .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 32, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 64, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 96, .y = 0 }, .duration = 0.1, .extend = 1 },
+                    .{ .offset = .{ .x = 128, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 160, .y = 0 }, .duration = 0.1 },
+                },
+            },
+            .{ // 6: axe
+                .type = .axe,
+                // .path = "farm-rpg/Character and Portrait/Character/Pre-made/Alex/Axe.png",
+                .imageId = 3546124322,
+                .frames = .{
+                    .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 32, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 64, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 96, .y = 0 }, .duration = 0.1, .extend = 1 },
+                    .{ .offset = .{ .x = 128, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 160, .y = 0 }, .duration = 0.1 },
+                },
+            },
+            .{ // 7: pickaxe
+                .type = .pickaxe,
+                // .path = "farm-rpg/Character and Portrait/Character/Pre-made/Alex/Pickaxe.png",
+                .imageId = 1558108969,
+                .frames = .{
+                    .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 32, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 64, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 96, .y = 0 }, .duration = 0.1, .extend = 1 },
+                    .{ .offset = .{ .x = 128, .y = 0 }, .duration = 0.1 },
+                    .{ .offset = .{ .x = 160, .y = 0 }, .duration = 0.1 },
+                },
+            },
+        },
+    },
+    .items = .{
+        .{ // hoe (index 0)
+            .name = "锄头",
+            .category = "工具",
+            .description = "翻开土地，准备播种。",
+            .limit = 1,
+            .icon = .{
+                // .path = "farm-rpg/Icons/Weapons/RPG/5.png"
+                .imageId = 4096884281,
+                .rect = .{ .min = .{ .x = 96, .y = 0 }, .size = .{ .x = 16, .y = 16 } },
+                .size = .{ .x = 32, .y = 32 },
+            },
+        },
+        .{ // water (index 1)
+            .name = "水壶",
+            .category = "工具",
+            .description = "给作物浇水。",
+            .limit = 1,
+            .icon = .{
+                // .path = "farm-rpg/Icons/Weapons/RPG/5.png"
+                .imageId = 4096884281,
+                .rect = .{ .min = .{ .x = 0, .y = 0 }, .size = .{ .x = 16, .y = 16 } },
+                .size = .{ .x = 32, .y = 32 },
+            },
+        },
+        .{ // pickaxe (index 2)
+            .name = "镐子",
+            .category = "工具",
+            .description = "敲碎石块和矿物。",
+            .limit = 1,
+            .hit = .{ .target = .stone },
+            .icon = .{
+                // .path = "farm-rpg/Icons/Weapons/RPG/5.png"
+                .imageId = 4096884281,
+                .rect = .{ .min = .{ .x = 16, .y = 0 }, .size = .{ .x = 16, .y = 16 } },
+                .size = .{ .x = 32, .y = 32 },
+            },
+        },
+        .{ // axe (index 3)
+            .name = "斧头",
+            .category = "工具",
+            .description = "砍伐树木。",
+            .limit = 1,
+            .hit = .{ .target = .timber },
+            .icon = .{
+                // .path = "farm-rpg/Icons/Weapons/RPG/5.png"
+                .imageId = 4096884281,
+                .rect = .{ .min = .{ .x = 48, .y = 0 }, .size = .{ .x = 16, .y = 16 } },
+                .size = .{ .x = 32, .y = 32 },
+            },
+        },
+        .{ // sickle (index 4)
+            .name = "镰刀",
+            .category = "工具",
+            .description = "收割成熟作物。",
+            .limit = 1,
+            .icon = .{
+                // .path = "farm-rpg/Icons/Weapons/RPG/5.png"
+                .imageId = 4096884281,
+                .rect = .{ .min = .{ .x = 128, .y = 0 }, .size = .{ .x = 16, .y = 16 } },
+                .size = .{ .x = 32, .y = 32 },
+            },
+        },
+        .{ // strawberrySeed (index 5)，对应 CropEnum.strawberry
+            .name = "草莓种子",
+            .category = "种子",
+            .description = "种下后会长出草莓。",
+            .limit = 99,
+            .icon = .{
+                // .path = "farm-rpg/Icons/Crops.png"
+                .imageId = 2346538291,
+                .rect = .{ .min = .{ .x = 0, .y = 32 }, .size = .{ .x = 16, .y = 16 } },
+                .size = .{ .x = 32, .y = 32 },
+            },
+        },
+        .{ // potatoSeed (index 6)，对应 CropEnum.potato
+            .name = "土豆种子",
+            .category = "种子",
+            .description = "种下后会长出土豆。",
+            .limit = 99,
+            .icon = .{
+                // .path = "farm-rpg/Icons/Crops.png"
+                .imageId = 2346538291,
+                .rect = .{ .min = .{ .x = 0, .y = 64 }, .size = .{ .x = 16, .y = 16 } },
+                .size = .{ .x = 32, .y = 32 },
+            },
+        },
+        .{ // strawberry (index 7)，收获产出
+            .name = "草莓",
+            .category = "作物",
+            .description = "成熟后收获的水果。",
+            .limit = 99,
+            .product = .{
+                .value = .{ .item = .strawberrySeed, .count = 3 },
+            },
+            .icon = .{
+                // .path = "farm-rpg/Icons/Crops.png"
+                .imageId = 2346538291,
+                .rect = .{ .min = .{ .x = 32, .y = 32 }, .size = .{ .x = 16, .y = 16 } },
+                .size = .{ .x = 32, .y = 32 },
+            },
+        },
+        .{ // potato (index 8)，收获产出
+            .name = "土豆",
+            .category = "作物",
+            .description = "成熟后收获的根茎作物。",
+            .limit = 99,
+            .product = .{
+                .value = .{ .item = .potatoSeed, .count = 3 },
+            },
+            .icon = .{
+                // .path = "farm-rpg/Icons/Crops.png"
+                .imageId = 2346538291,
+                .rect = .{ .min = .{ .x = 32, .y = 64 }, .size = .{ .x = 16, .y = 16 } },
+                .size = .{ .x = 32, .y = 32 },
+            },
+        },
+        .{ // timber (index 9)，资源产出
+            .name = "木材",
+            .category = "材料",
+            .description = "砍伐树木得到的基础材料。",
+            .limit = 99,
+            .product = .{
+                .value = .{ .item = .timber, .count = 3 },
+            },
+            .health = 5,
+            .icon = .{
+                // .path = "farm-rpg/Icons/Weapons/14.png"
+                .imageId = 563877801,
+                .rect = .{
+                    .min = .{ .x = 0, .y = 0 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+                .size = .{ .x = 32, .y = 32 },
+            },
+        },
+        .{ // stone (index 10)，资源产出
+            .name = "石头",
+            .category = "材料",
+            .description = "敲碎石块得到的基础材料。",
+            .limit = 99,
+            .product = .{
+                .value = .{ .item = .stone, .count = 3 },
+            },
+            .health = 3,
+            .icon = .{
+                // .path = "farm-rpg/Icons/Weapons/14.png"
+                .imageId = 563877801,
+                .rect = .{
+                    .min = .{ .x = 0, .y = 16 },
+                    .size = .{ .x = 16, .y = 16 },
+                },
+                .size = .{ .x = 32, .y = 32 },
+            },
+        },
+    },
+    .animals = .{
+        .{ // cow
+            .speed = 10.0,
+            .wanderRadius = 32.0,
+            .soundId = .cow,
+            .voice = .{
+                .probability = 0.4,
+                .coolDown = 6.0,
+            },
+            .name = "cow",
+            .sprite = .{
+                // .path = "farm-rpg/Farm Animals/Cow/Common Cow/Female Cow Black.png",
+                .imageId = 1920799980,
+                .rect = .{
+                    .min = .{ .x = 0, .y = 0 },
+                    .size = .{ .x = 32, .y = 32 },
+                },
+                .offset = .{ .x = -16, .y = -29 },
+                .size = .{ .x = 32, .y = 32 },
+            },
+            .rows = .{ 2, 3, 1, -1 },
+            .animations = .{
+                .{ // idle
+                    .type = .idle,
+                    .imageId = 1920799980,
+                    .frames = .{
+                        .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.2 },
+                    },
+                },
+                .{ // walk
+                    .type = .walk,
+                    .imageId = 1920799980,
+                    .frames = .{
+                        .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 32, .y = 0 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 64, .y = 0 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 96, .y = 0 }, .duration = 0.2 },
+                    },
+                },
+                .{
+                    .type = .sleep,
+                    .imageId = 1920799980,
+                    .frames = .{
+                        .{ .offset = .{ .x = 0, .y = 96 }, .duration = 1.0 },
+                        .{ .offset = .{ .x = 32, .y = 96 }, .duration = 1.0 },
+                        .{ .offset = .{ .x = 64, .y = 96 }, .duration = 1.0 },
+                        .{ .offset = .{ .x = 96, .y = 96 }, .duration = 1.0 },
+                    },
+                },
+                .{
+                    .type = .eat,
+                    .imageId = 1920799980,
+                    .frames = .{
+                        .{ .offset = .{ .x = 0, .y = 160 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 32, .y = 160 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 64, .y = 160 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 64, .y = 160 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 64, .y = 160 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 96, .y = 160 }, .duration = 0.2 },
+                    },
+                },
+            },
+        },
+        .{ // sheep
+            .speed = 10.0,
+            .wanderRadius = 32.0,
+            .soundId = .sheep,
+            .voice = .{
+                .probability = 0.35,
+                .coolDown = 7.0,
+            },
+            .name = "sheep",
+            .sprite = .{
+                // .path = "farm-rpg/Farm Animals/Sheep/Sheep Male 2.png",
+                .imageId = 3986680349,
+                .rect = .{
+                    .min = .{ .x = 0, .y = 0 },
+                    .size = .{ .x = 32, .y = 32 },
+                },
+                .offset = .{ .x = -16, .y = -29 },
+                .size = .{ .x = 32, .y = 32 },
+            },
+            .rows = .{ 2, 3, 1, -1 },
+            .animations = .{
+                .{ // idle
+                    .type = .idle,
+                    .imageId = 3986680349,
+                    .frames = .{
+                        .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.2 },
+                    },
+                },
+                .{ // walk
+                    .type = .walk,
+                    .imageId = 3986680349,
+                    .frames = .{
+                        .{ .offset = .{ .x = 0, .y = 0 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 32, .y = 0 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 64, .y = 0 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 96, .y = 0 }, .duration = 0.2 },
+                    },
+                },
+                .{
+                    .type = .sleep,
+                    .imageId = 3986680349,
+                    .frames = .{
+                        .{ .offset = .{ .x = 0, .y = 96 }, .duration = 1.0 },
+                        .{ .offset = .{ .x = 32, .y = 96 }, .duration = 1.0 },
+                        .{ .offset = .{ .x = 64, .y = 96 }, .duration = 1.0 },
+                        .{ .offset = .{ .x = 96, .y = 96 }, .duration = 1.0 },
+                    },
+                },
+                .{
+                    .type = .eat,
+                    .imageId = 3986680349,
+                    .frames = .{
+                        .{ .offset = .{ .x = 0, .y = 160 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 32, .y = 160 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 64, .y = 160 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 64, .y = 160 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 64, .y = 160 }, .duration = 0.2 },
+                        .{ .offset = .{ .x = 96, .y = 160 }, .duration = 0.2 },
+                    },
+                },
+            },
+        },
+    },
+    .friend = .{
+        .speed = 20.0,
+        .wanderRadius = 48.0,
+        .name = "Lyria",
+        .dialog = .{
+            "早上好，今天也要照顾好农场哦。",
+            "镇上的大家都很期待你的收成。",
+        },
+        .sprite = .{
+            // .path =
+            // "farm-rpg/Character and Portrait/Character/Pre-made/Lyria/Idle.png",
+            .imageId = 1355702369,
+            .rect = .{
+                .min = .{ .x = 0, .y = 0 },
+                .size = .{ .x = 32, .y = 32 },
+            },
+            .offset = .{ .x = -16, .y = -24 },
+            .size = .{ .x = 32, .y = 32 },
+        },
+        .rows = .{ 1, 2, -3, 3 },
+        .animations = .{
+            .{ // idle
+                .type = .idle,
+                .imageId = 1355702369,
+                .frames = .{
+                    .{
+                        .offset = .{ .x = 0, .y = 0 },
+                        .duration = 0.2,
+                    },
+                    .{
+                        .offset = .{ .x = 32, .y = 0 },
+                        .duration = 0.2,
+                    },
+                    .{
+                        .offset = .{ .x = 64, .y = 0 },
+                        .duration = 0.2,
+                    },
+                    .{
+                        .offset = .{ .x = 96, .y = 0 },
+                        .duration = 0.2,
+                    },
+                },
+            },
+            .{ // walk
+                .type = .walk,
+                .imageId = 1120279514,
+                .frames = .{
+                    .{
+                        .offset = .{ .x = 0, .y = 0 },
+                        .duration = 0.1,
+                    },
+                    .{
+                        .offset = .{ .x = 32, .y = 0 },
+                        .duration = 0.1,
+                    },
+                    .{
+                        .offset = .{ .x = 64, .y = 0 },
+                        .duration = 0.1,
+                    },
+                    .{
+                        .offset = .{ .x = 96, .y = 0 },
+                        .duration = 0.1,
+                    },
+                    .{
+                        .offset = .{ .x = 128, .y = 0 },
+                        .duration = 0.1,
+                    },
+                    .{
+                        .offset = .{ .x = 160, .y = 0 },
+                        .duration = 0.1,
+                    },
+                },
+            },
+        },
+    },
+    .crops = .{
+        .{ // index 0: strawberry，对应 farm.CropEnum.strawberry
+            // .path = "farm-rpg/Farm Crops/Spring Crops.png"
+            .stages = .{
+                .{
+                    .sprite = .{
+                        .imageId = 4041761859,
+                        .rect = .{
+                            .min = .{ .x = 0, .y = 16 },
+                            .size = .{ .x = 16, .y = 16 },
+                        },
+                        .offset = .{ .x = 2.5, .y = -2.5 },
+                        .size = .{ .x = 16, .y = 16 },
+                    },
+                    .duration = 5.0,
+                },
+                .{
+                    .sprite = .{
+                        .imageId = 4041761859,
+                        .rect = .{
+                            .min = .{ .x = 16, .y = 16 },
+                            .size = .{ .x = 16, .y = 16 },
+                        },
+                        .offset = .{ .x = 1.0, .y = -4.0 },
+                        .size = .{ .x = 16, .y = 16 },
+                    },
+                    .duration = 8.0,
+                },
+                .{
+                    .sprite = .{
+                        .imageId = 4041761859,
+                        .rect = .{
+                            .min = .{ .x = 32, .y = 16 },
+                            .size = .{ .x = 16, .y = 16 },
+                        },
+                        .offset = .{ .x = 0.5, .y = -3.0 },
+                        .size = .{ .x = 16, .y = 16 },
+                    },
+                    .duration = 8.0,
+                },
+                .{
+                    .sprite = .{
+                        .imageId = 4041761859,
+                        .rect = .{
+                            .min = .{ .x = 80, .y = 16 },
+                            .size = .{ .x = 16, .y = 16 },
+                        },
+                        .offset = .{ .x = 0.5, .y = -0.5 },
+                        .size = .{ .x = 16, .y = 16 },
+                    },
+                    .duration = 0.0,
+                },
+            },
+        },
+        .{ // index 1: potato，对应 farm.CropEnum.potato
+            // .path = "farm-rpg/Farm Crops/Spring/Spring Crops.png"
+            .stages = .{
+                .{
+                    .sprite = .{
+                        .imageId = 4041761859,
+                        .rect = .{
+                            .min = .{ .x = 0, .y = 80 },
+                            .size = .{ .x = 16, .y = 16 },
+                        },
+                        .offset = .{ .x = 2.5, .y = -2.5 },
+                        .size = .{ .x = 16, .y = 16 },
+                    },
+                    .duration = 4.0,
+                },
+                .{
+                    .sprite = .{
+                        .imageId = 4041761859,
+                        .rect = .{
+                            .min = .{ .x = 32, .y = 80 },
+                            .size = .{ .x = 16, .y = 16 },
+                        },
+                        .offset = .{ .x = 1.0, .y = -4.0 },
+                        .size = .{ .x = 16, .y = 16 },
+                    },
+                    .duration = 6.0,
+                },
+                .{
+                    .sprite = .{
+                        .imageId = 4041761859,
+                        .rect = .{
+                            .min = .{ .x = 48, .y = 80 },
+                            .size = .{ .x = 16, .y = 16 },
+                        },
+                        .offset = .{ .x = 0.5, .y = -3.0 },
+                        .size = .{ .x = 16, .y = 16 },
+                    },
+                    .duration = 6.0,
+                },
+                .{
+                    .sprite = .{
+                        .imageId = 4041761859,
+                        .rect = .{
+                            .min = .{ .x = 80, .y = 80 },
+                            .size = .{ .x = 16, .y = 16 },
+                        },
+                        .offset = .{ .x = 0.5, .y = -0.5 },
+                        .size = .{ .x = 16, .y = 16 },
+                    },
+                    .duration = 0.0,
+                },
+            },
+        },
+    },
+}
