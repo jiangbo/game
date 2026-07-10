@@ -1,53 +1,43 @@
 const std = @import("std");
-const builtin = @import("builtin");
 const zhu = @import("zhu");
 
-const window = @import("zhu").window;
 const scene = @import("scene.zig");
 
-// pub extern "Imm32" fn ImmDisableIME(i32) std.os.windows.BOOL;
-
+var vertexBuffer: []zhu.batch.Vertex = undefined;
+var commandBuffer: [128]zhu.batch.Command = undefined;
 var soundBuffer: [40]zhu.audio.Sound = undefined;
 
-pub fn init() void {
+pub fn init(allocator: zhu.Allocator) void {
+    vertexBuffer = allocator.alloc(zhu.batch.Vertex, 5000);
+    zhu.batch.init(vertexBuffer, &commandBuffer);
     zhu.audio.init(44100, &soundBuffer);
-    scene.init();
+    scene.init(allocator);
 }
 
-pub fn event(evt: *const window.Event) void {
+pub fn event(evt: *const zhu.window.Event) void {
     scene.handleEvent(evt);
 }
 
 pub fn frame(delta: f32) void {
     scene.update(delta);
+
+    zhu.batch.beginDraw();
+    zhu.batch.useTarget(.black, .{});
     scene.draw();
+    zhu.batch.endDraw();
 }
 
-pub fn deinit() void {
+pub fn deinit(allocator: zhu.Allocator) void {
     scene.deinit();
     zhu.audio.deinit();
+    allocator.free(vertexBuffer);
 }
 
-pub fn main() void {
-    var allocator: std.mem.Allocator = undefined;
-    var debugAllocator: std.heap.DebugAllocator(.{}) = undefined;
-    if (builtin.mode == .Debug) {
-        debugAllocator = std.heap.DebugAllocator(.{}).init;
-        allocator = debugAllocator.allocator();
-    } else {
-        allocator = std.heap.c_allocator;
-    }
-
-    defer if (builtin.mode == .Debug) {
-        _ = debugAllocator.deinit();
-    };
-
-    // if (builtin.os.tag == .windows) {
-    //     _ = ImmDisableIME(-1);
-    // }
-
-    window.run(allocator, .{
+pub fn main(initInfo: std.process.Init) void {
+    zhu.window.run(initInfo.io, initInfo.gpa, .{
         .title = "太空战机",
-        .logicSize = .{ .x = 600, .y = 800 },
+        .size = .xy(600, 800),
+        .logicSize = .xy(600, 800),
+        .scaleEnum = .fit,
     });
 }

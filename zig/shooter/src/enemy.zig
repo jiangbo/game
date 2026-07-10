@@ -1,72 +1,64 @@
 const std = @import("std");
 const zhu = @import("zhu");
 
-const gfx = zhu.gfx;
-const window = zhu.window;
-const camera = zhu.camera;
-
 const player = @import("player.zig");
 
-const Enemy = struct {
-    position: gfx.Vector, // 敌机的位置
-    shotTime: u64 = 0, // 敌机开火的时间
+pub const Enemy = struct {
+    position: zhu.Vector2, // 敌机的位置
+    shotTimer: zhu.Timer = .init(2), // 敌机开火计时器
     health: u8 = 2, // 敌机的生命值
 };
 
 const Bullet = struct {
-    position: gfx.Vector, // 子弹的位置
-    direction: gfx.Vector, // 子弹的方向
+    position: zhu.Vector2, // 子弹的位置
+    direction: zhu.Vector2, // 子弹的方向
 };
 
-const ENEMY_SPEED = 150; // 敌机的移动速度
-const BULLET_SPEED = 400; // 子弹的移动速度
-const SHOOT_INTERVAL = 2 * std.time.ns_per_s; // 敌机开火间隔
-
-var texture: gfx.Texture = undefined; // 敌机的纹理
-pub var size: gfx.Vector = undefined; // 敌机的大小
+var allocator: std.mem.Allocator = undefined;
+var image: zhu.Image = undefined; // 敌机的图片
+pub var size: zhu.Vector2 = undefined; // 敌机的大小
 
 pub var enemies: std.ArrayList(Enemy) = .empty;
-var spawnTimer: window.Timer = .init(1); // 生成敌机的定时器
+var spawnTimer: zhu.Timer = .init(1); // 生成敌机的定时器
 
-var bulletTexture: gfx.Texture = undefined; // 子弹的纹理
-var bulletSize: gfx.Vector = undefined; // 子弹的大小
+var bulletImage: zhu.Image = undefined; // 子弹的图片
+var bulletSize: zhu.Vector2 = undefined; // 子弹的大小
 var bullets: std.ArrayList(Bullet) = .empty;
-var bulletBound: gfx.Rect = undefined; // 子弹的边界
+var bulletBound: zhu.Rect = undefined; // 子弹的边界
 
-pub fn init() void {
-    texture = gfx.loadTexture("assets/image/insect-2.png", .init(182, 160));
-    size = texture.size().scale(0.25);
+pub fn init(allocator_: std.mem.Allocator) void {
+    allocator = allocator_;
+    image = zhu.getImage("image/insect-2.png").?;
+    size = image.size.scale(0.25);
 
-    bulletTexture = gfx.loadTexture("assets/image/bullet-1.png", .init(14, 42));
-    bulletSize = bulletTexture.size().scale(0.5);
+    bulletImage = zhu.getImage("image/bullet-1.png").?;
+    bulletSize = bulletImage.size.scale(0.5);
 
-    // 子弹的边界框，超出就可以删除了。
-    bulletBound = .init(bulletSize.scale(-1), window.logicSize);
+    // 子弹的边界框，超出就可以删除。
+    bulletBound = .init(bulletSize.scale(-1), zhu.window.size);
 }
 
 pub fn restart() void {
     enemies.clearRetainingCapacity();
     bullets.clearRetainingCapacity();
+    spawnTimer.restart();
 }
 
 pub fn update(delta: f32) void {
-    if (spawnTimer.isFinishedAfterUpdate(delta)) { // 每秒生成一个
-        spawnTimer.elapsed = 0;
+    if (spawnTimer.updateFinished(delta)) {
+        spawnTimer.restart();
         spawnEnemy();
     }
 
-    const shotTime = window.relativeTime() -| SHOOT_INTERVAL;
     var iterator = std.mem.reverseIterator(enemies.items);
     while (iterator.nextPtr()) |enemy| {
-        enemy.position.y += ENEMY_SPEED * delta; // 敌机向下移动
-        if (enemy.position.y > window.logicSize.y) {
-            // 移动到屏幕外了，删除
+        enemy.position.y += 150 * delta;
+        if (enemy.position.y > zhu.window.size.y) {
             _ = enemies.swapRemove(iterator.index);
-        } else if (enemy.shotTime < shotTime) {
-            // 到达开火时间
-            enemy.shotTime = window.relativeTime();
+        } else if (enemy.shotTimer.updateFinished(delta)) {
+            enemy.shotTimer.restart();
             spawnBullet(enemy);
-            zhu.audio.playSound("assets/sound/xs_laser.ogg");
+            zhu.audio.playSound("sound/xs_laser.ogg");
         }
     }
 
@@ -74,39 +66,32 @@ pub fn update(delta: f32) void {
 }
 
 fn spawnEnemy() void {
-    // 在 X 轴上随机生成敌机，Y 固定。
-    const x = zhu.randomF32(0, window.logicSize.x - size.x);
-    enemies.append(window.allocator, .{
-        // Y 刚好让敌机出现在屏幕上方的外面
-        .position = .init(x, -size.y),
-        .shotTime = window.relativeTime(),
-    }) catch unreachable;
+    const x = zhu.random.float(0, zhu.window.size.x - size.x);
+    enemies.append(allocator, .{
+        .position = .xy(x, -size.y),
+    }) catch @panic("enemy oom");
 }
 
 fn spawnBullet(enemy: *Enemy) void {
-    // 子弹出现在敌机的中心的位置，并且子弹中心和敌机的中心一样。
     const offset = size.sub(bulletSize).scale(0.5);
     const pos = enemy.position.add(offset);
-    // 子弹的中心位置，是不是可以考虑子弹就是一个点，位置就是中心位置？
-    const center = gfx.Rect.init(pos, bulletSize).center();
-    bullets.append(window.allocator, .{
+    const center = zhu.Rect.init(pos, bulletSize).center();
+    bullets.append(allocator, .{
         .position = pos,
-        // 子弹的方向应该是子弹的中心指向角色的中心
         .direction = player.center().sub(center).normalize(),
-    }) catch unreachable;
+    }) catch @panic("enemy bullet oom");
 }
 
 fn updateBullets(delta: f32) void {
     var iterator = std.mem.reverseIterator(bullets.items);
     while (iterator.nextPtr()) |bullet| {
-        const offset = bullet.direction.scale(BULLET_SPEED * delta);
+        const offset = bullet.direction.scale(400 * delta);
         bullet.position = bullet.position.add(offset);
         if (!bulletBound.contains(bullet.position)) {
-            // 移动到屏幕外了，删除
             _ = bullets.swapRemove(iterator.index);
             continue;
         }
-        // 检测是否击中玩家
+
         const center = bullet.position.add(bulletSize.scale(0.5));
         if (player.collidePlayer(center)) {
             _ = bullets.swapRemove(iterator.index);
@@ -114,24 +99,20 @@ fn updateBullets(delta: f32) void {
     }
 }
 
-// 图片方向向下为正方向，所以需要减去半 π
-const halfPi: f32 = @as(f32, std.math.pi) / 2;
-
 pub fn draw() void {
-    // 绘制子弹
     for (bullets.items) |bullet| {
-        camera.drawOption(bulletTexture, bullet.position, .{
+        zhu.batch.drawImage(bulletImage, bullet.position, .{
             .size = bulletSize,
-            .radian = bullet.direction.atan2() - halfPi,
+            .radian = bullet.direction.atan2() - @as(f32, std.math.pi) / 2,
         });
     }
-    // 绘制敌机
+
     for (enemies.items) |enemy| {
-        camera.drawOption(texture, enemy.position, .{ .size = size });
+        zhu.batch.drawImage(image, enemy.position, .{ .size = size });
     }
 }
 
 pub fn deinit() void {
-    enemies.deinit(window.allocator);
-    bullets.deinit(window.allocator);
+    enemies.deinit(allocator);
+    bullets.deinit(allocator);
 }
