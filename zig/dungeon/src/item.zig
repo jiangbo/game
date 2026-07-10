@@ -1,8 +1,8 @@
 const std = @import("std");
 const zhu = @import("zhu");
 
-const gfx = zhu.gfx;
-const ecs = zhu.ecs;
+const ecs = @import("ecs");
+const game = @import("world.zig");
 
 const map = @import("map.zig");
 const component = @import("component.zig");
@@ -23,34 +23,34 @@ pub fn init() void {
 }
 
 fn spawnAmulet() void {
-    const amulet = ecs.w.createIdentityEntity(Amulet);
+    const amulet = game.world.createIdentity(Amulet);
 
     const pos = map.finalPos;
-    ecs.w.add(amulet, pos);
+    game.world.add(amulet, pos);
     const texture = map.getTextureFromTile(.amulet);
-    ecs.w.alignAdd(amulet, .{ map.worldPosition(pos), texture });
-    ecs.w.add(amulet, Item{});
+    game.world.addAll(amulet, .{ map.worldPosition(pos), texture });
+    game.world.add(amulet, Item{});
 }
 
 fn spawnExit() void {
-    const exit = ecs.w.createEntity();
+    const exit = game.world.createEntity();
 
     const pos = map.finalPos;
-    ecs.w.add(exit, pos);
+    game.world.add(exit, pos);
     const texture = map.getTextureFromTile(.exit);
-    ecs.w.alignAdd(exit, .{ map.worldPosition(pos), texture });
-    ecs.w.add(exit, Item{});
+    game.world.addAll(exit, .{ map.worldPosition(pos), texture });
+    game.world.add(exit, Item{});
 }
 
 pub fn update() void {
-    const playerEntity = ecs.w.getIdentityEntity(Player).?;
-    const viewField = ecs.w.get(playerEntity, ViewField)[0];
+    const playerEntity = game.world.getIdentity(Player).?;
+    const viewField = game.world.get(playerEntity, ViewField).?[0];
 
-    var view = ecs.w.viewOption(.{Item}, .{PlayerView}, .{});
-    while (view.next()) |item| {
-        const itemPos = view.get(item, TilePosition);
+    var query = game.world.queryNot(.{ Item, TilePosition }, .{PlayerView});
+    while (query.next()) |item| {
+        const itemPos = query.get(item, TilePosition);
         if (viewField.contains(itemPos)) {
-            view.add(item, PlayerView{});
+            game.world.add(item, PlayerView{});
         }
     }
 }

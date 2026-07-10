@@ -1,8 +1,8 @@
 const std = @import("std");
 const zhu = @import("zhu");
 
-const ecs = zhu.ecs;
-const gfx = zhu.gfx;
+const ecs = @import("ecs");
+const game = @import("world.zig");
 
 const map = @import("map.zig");
 const battle = @import("battle.zig");
@@ -47,17 +47,18 @@ pub fn init() void {
         f.* = if (found == null) 0 else template.frequency;
     }
 
-    const playerView = ecs.w.getIdentity(Player, ViewField).?[0];
+    const player = game.world.getIdentity(Player).?;
+    const playerView = game.world.get(player, ViewField).?[0];
     for (map.spawns[1..]) |pos| {
-        const entity = ecs.w.createEntity();
-        if (playerView.contains(pos)) ecs.w.add(entity, PlayerView{});
+        const entity = game.world.createEntity();
+        if (playerView.contains(pos)) game.world.add(entity, PlayerView{});
 
-        const index = zhu.random().weightedIndex(u8, &frequencies);
+        const index = zhu.random.int(u8, 0, frequencies.len);
         const template = &templates[index];
-        ecs.w.add(entity, pos);
-        ecs.w.add(entity, map.worldPosition(pos));
-        ecs.w.add(entity, map.getTextureFromTile(template.tile));
-        ecs.w.add(entity, Name{template.name});
+        game.world.add(entity, pos);
+        game.world.add(entity, map.worldPosition(pos));
+        game.world.add(entity, map.getTextureFromTile(template.tile));
+        game.world.add(entity, Name{template.name});
 
         switch (templates[index].entityType) {
             .item => spawnItem(entity, template),
@@ -67,24 +68,24 @@ pub fn init() void {
 }
 
 fn spawnItem(entity: ecs.Entity, t: *const Template) void {
-    ecs.w.add(entity, Item{});
+    game.world.add(entity, Item{});
     if (t.tile == .map) return;
     if (t.damage == 0) {
-        return ecs.w.add(entity, Healing{ .v = t.value });
+        return game.world.add(entity, Healing{ .v = t.value });
     }
-    ecs.w.add(entity, Damage{ .v = t.damage });
+    game.world.add(entity, Damage{ .v = t.damage });
 }
 
 fn spawnMonster(enemy: ecs.Entity, t: *const Template) void {
     const hp: i32 = @intCast(t.value);
-    ecs.w.add(enemy, Health{ .current = hp, .max = hp });
-    ecs.w.add(enemy, ChasePlayer{});
-    ecs.w.add(enemy, Enemy{});
-    ecs.w.add(enemy, Damage{ .v = t.damage });
+    game.world.add(enemy, Health{ .current = hp, .max = hp });
+    game.world.add(enemy, ChasePlayer{});
+    game.world.add(enemy, Enemy{});
+    game.world.add(enemy, Damage{ .v = t.damage });
 }
 
 pub fn update() void {
-    ecs.w.addContext(TurnState.player);
+    game.turn = .player;
 
     moveOrAttack();
     battle.attack();
@@ -92,31 +93,31 @@ pub fn update() void {
 }
 
 fn moveOrAttack() void {
-    const playerEntity = ecs.w.getIdentityEntity(Player).?;
-    const playerPos = ecs.w.get(playerEntity, TilePosition);
-    const rect = ecs.w.get(playerEntity, ViewField)[0];
+    const playerEntity = game.world.getIdentity(Player).?;
+    const playerPos = game.world.get(playerEntity, TilePosition).?;
+    const rect = game.world.get(playerEntity, ViewField).?[0];
 
-    var view = ecs.w.view(.{ ChasePlayer, TilePosition });
-    while (view.next()) |entity| {
-        var pos = view.get(entity, TilePosition);
-        if (rect.contains(pos)) view.add(entity, PlayerView{});
+    var query = game.world.query(.{ ChasePlayer, TilePosition });
+    while (query.next()) |entity| {
+        var pos = query.get(entity, TilePosition);
+        if (rect.contains(pos)) game.world.add(entity, PlayerView{});
         const enemyRect: TileRect = .fromCenter(pos, viewSize);
         if (!enemyRect.contains(playerPos)) continue;
 
         const next = map.queryLessDistance(pos) orelse continue;
 
         if (playerPos.equals(next)) {
-            view.add(entity, WantToAttack{playerEntity});
+            game.world.add(entity, WantToAttack{playerEntity});
             continue;
         }
 
-        for (ecs.w.raw(TilePosition)) |tilePos| {
+        for (game.world.values(TilePosition)) |tilePos| {
             if (!tilePos.equals(next)) continue;
 
-            const step = zhu.math.randomStep(u8, 1);
+            const step = zhu.random.int(u8, 0, 2) * 2 -% 1;
             if (pos.x == next.x) pos.x +%= step else pos.y +%= step;
-            view.add(entity, WantToMove{pos});
+            game.world.add(entity, WantToMove{pos});
             break;
-        } else view.add(entity, WantToMove{next});
+        } else game.world.add(entity, WantToMove{next});
     }
 }

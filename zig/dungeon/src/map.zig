@@ -1,8 +1,8 @@
 const std = @import("std");
 const zhu = @import("zhu");
 
-const gfx = zhu.gfx;
-const ecs = zhu.ecs;
+const ecs = @import("ecs");
+const game = @import("world.zig");
 
 const component = @import("component.zig");
 const builder = @import("builder.zig");
@@ -19,26 +19,26 @@ const Theme = enum { dungeon, forest };
 
 const WIDTH = builder.WIDTH;
 const HEIGHT = builder.HEIGHT;
-pub const TILE_SIZE: gfx.Vector = .init(32, 32);
+pub const TILE_SIZE: zhu.Vector2 = .xy(32, 32);
 pub const MAX_LEVEL = 3;
 const TILE_PER_ROW = 16;
 
-pub var size = gfx.Vector.init(WIDTH, HEIGHT).mul(TILE_SIZE);
+pub var size = zhu.Vector2.xy(WIDTH, HEIGHT).mul(TILE_SIZE);
 pub var spawns: [builder.SPAWN_SIZE]TilePosition = undefined;
 pub var finalPos: TilePosition = undefined;
 pub var currentLevel: u8 = 1;
 
 var tiles: [WIDTH * HEIGHT]Tile = undefined;
-var texture: gfx.Texture = undefined;
+var image: zhu.Image = undefined;
 var walks: [HEIGHT * WIDTH]bool = undefined;
 var theme: Theme = undefined;
 
 pub fn init(mapLevel: u8) void {
-    texture = gfx.loadTexture("assets/dungeonfont.png", .init(512, 512));
-    theme = if (zhu.randomBool()) .dungeon else .forest;
+    image = zhu.assets.loadImage("dungeonfont.png", .xy(512, 512));
+    theme = if (zhu.random.boolean()) .dungeon else .forest;
     currentLevel = mapLevel;
 
-    switch (zhu.randomInt(u8, 0, 3)) {
+    switch (zhu.random.int(u8, 0, 3)) {
         1 => builder.buildRooms(&tiles, &spawns),
         2 => builder.buildAutometa(&tiles, &spawns),
         else => builder.buildDrunkard(&tiles, &spawns),
@@ -78,8 +78,8 @@ fn applyPrefab() void {
 
     blk: for (0..10) |_| {
         const prefab = TileRect{
-            .x = zhu.randomInt(u8, 0, WIDTH - FORTRESS[0].len),
-            .y = zhu.randomInt(u8, 0, HEIGHT - FORTRESS.len),
+            .x = zhu.random.int(u8, 0, WIDTH - FORTRESS[0].len),
+            .y = zhu.random.int(u8, 0, HEIGHT - FORTRESS.len),
             .w = FORTRESS[0].len,
             .h = FORTRESS.len,
         };
@@ -118,7 +118,7 @@ fn applyPrefab() void {
                 const i = if (count < prefabSpawns.len)
                     prefabSpawns[count]
                 else
-                    zhu.randomInt(u8, 1, spawns.len);
+                    zhu.random.int(u8, 1, spawns.len);
                 const dx: u8 = @intCast(start.x + x);
                 spawns[i] = .{ .x = dx, .y = @intCast(start.y + y) };
                 count += 1;
@@ -128,7 +128,7 @@ fn applyPrefab() void {
     }
 }
 
-pub fn getTextureFromTile(tile: Tile) gfx.Texture {
+pub fn getTextureFromTile(tile: Tile) zhu.Image {
     var index: usize = @intFromEnum(tile);
     if (theme == .forest) {
         if (tile == .wall) index = 34;
@@ -137,14 +137,14 @@ pub fn getTextureFromTile(tile: Tile) gfx.Texture {
 
     const row: f32 = @floatFromInt(index / TILE_PER_ROW);
     const col: f32 = @floatFromInt(index % TILE_PER_ROW);
-    const pos = gfx.Vector.init(col, row).mul(TILE_SIZE);
-    return texture.subTexture(.init(pos, TILE_SIZE));
+    const pos = zhu.Vector2.xy(col, row).mul(TILE_SIZE);
+    return image.sub(.init(pos, TILE_SIZE));
 }
 
-fn getPositionFromIndex(index: usize) gfx.Vector {
+fn getPositionFromIndex(index: usize) zhu.Vector2 {
     const row: f32 = @floatFromInt(index / WIDTH);
     const col: f32 = @floatFromInt(index % WIDTH);
-    return gfx.Vector.init(col, row).mul(TILE_SIZE);
+    return zhu.Vector2.xy(col, row).mul(TILE_SIZE);
 }
 
 const indexUsize = builder.indexUsize;
@@ -162,27 +162,22 @@ pub fn canMove(pos: TilePosition) bool {
 }
 
 pub fn moveIfNeed() void {
-    var view = ecs.w.view(.{ WantToMove, TilePosition });
-    blk: while (view.next()) |entity| {
-        const dest = view.get(entity, WantToMove)[0];
+    var query = game.world.query(.{ WantToMove, TilePosition, Position });
+    blk: while (query.next()) |entity| {
+        const dest = query.get(entity, WantToMove)[0];
         if (!canMove(dest)) continue;
 
-        for (ecs.w.raw(TilePosition)) |pos| {
+        for (game.world.values(TilePosition)) |pos| {
             if (pos.equals(dest)) continue :blk;
         }
 
-        view.getPtr(entity, TilePosition).* = dest;
+        query.getPtr(entity, TilePosition).* = dest;
         const pos = worldPosition(dest);
-        view.getPtr(entity, Position).* = pos;
+        query.getPtr(entity, Position).* = pos;
     }
 }
 
 var distances: [HEIGHT][WIDTH]u8 = undefined;
-const Dequeue = std.PriorityDequeue(TilePosition, void, struct {
-    fn compare(_: void, a: TilePosition, b: TilePosition) std.math.Order {
-        return std.math.order(distances[a.y][a.x], distances[b.y][b.x]);
-    }
-}.compare);
 const directions: [4]TilePosition = .{
     .{ .x = 1, .y = 0 }, .{ .x = 0xFF, .y = 0 },
     .{ .x = 0, .y = 1 }, .{ .x = 0, .y = 0xFF },
@@ -190,13 +185,15 @@ const directions: [4]TilePosition = .{
 pub fn updateDistance(pos: TilePosition) void {
     for (&distances) |*row| @memset(row, 0xFF);
 
-    var queue = Dequeue.init(zhu.window.allocator, {});
-    defer queue.deinit();
+    var queue: std.ArrayList(TilePosition) = .empty;
+    defer queue.deinit(game.world.allocator);
 
     distances[pos.y][pos.x] = 0;
-    queue.add(pos) catch unreachable;
+    queue.append(game.world.allocator, pos) catch zhu.oom();
 
-    while (queue.removeMinOrNull()) |min| {
+    var read: usize = 0;
+    while (read < queue.items.len) : (read += 1) {
+        const min = queue.items[read];
         const distance = distances[min.y][min.x];
 
         for (directions) |dir| {
@@ -206,7 +203,10 @@ pub fn updateDistance(pos: TilePosition) void {
 
             if (distance + 1 < distances[y][x]) {
                 distances[y][x] = distance + 1;
-                queue.add(.{ .x = x, .y = y }) catch unreachable;
+                queue.append(game.world.allocator, .{
+                    .x = x,
+                    .y = y,
+                }) catch zhu.oom();
             }
         }
     }
@@ -228,11 +228,12 @@ pub fn queryLessDistance(pos: TilePosition) ?TilePosition {
         }
     }
     if (r2 == null) return r1;
-    return if (zhu.randomBool()) r1 else r2;
+    return if (zhu.random.boolean()) r1 else r2;
 }
 
 pub fn updatePlayerWalk() void {
-    const viewField = ecs.w.getIdentity(Player, ViewField).?[0];
+    const player = game.world.getIdentity(Player).?;
+    const viewField = game.world.get(player, ViewField).?[0];
 
     for (viewField.y..viewField.y + viewField.h) |y| {
         for (viewField.x..viewField.x + viewField.w) |x| {
@@ -252,8 +253,8 @@ pub fn draw() void {
 }
 
 fn drawPlayerWalk() void {
-    const playerEntity = ecs.w.getIdentityEntity(Player).?;
-    const viewField = ecs.w.get(playerEntity, ViewField)[0];
+    const playerEntity = game.world.getIdentity(Player).?;
+    const viewField = game.world.get(playerEntity, ViewField).?[0];
 
     for (walks, 0..) |isWalk, index| {
         if (!isWalk) continue;
@@ -264,20 +265,21 @@ fn drawPlayerWalk() void {
         if (viewField.contains(pos)) continue;
 
         const tex = getTextureFromTile(tiles[index]);
-        zhu.camera.drawOption(tex, getPositionFromIndex(index), .{
-            .color = .{ .x = 0.5, .y = 0.5, .z = 0.5, .w = 1 },
+        zhu.batch.drawImage(tex, getPositionFromIndex(index), .{
+            .color = .rgba(0.5, 0.5, 0.5, 1),
         });
     }
 }
 
 fn drawPlayerView() void {
-    const viewField = ecs.w.getIdentity(Player, ViewField).?[0];
+    const player = game.world.getIdentity(Player).?;
+    const viewField = game.world.get(player, ViewField).?[0];
 
     for (viewField.x..viewField.x + viewField.w) |x| {
         for (viewField.y..viewField.y + viewField.h) |y| {
             const index = indexUsize(x, y);
             const tex = getTextureFromTile(tiles[index]);
-            zhu.camera.draw(tex, getPositionFromIndex(index));
+            zhu.batch.drawImage(tex, getPositionFromIndex(index), .{});
         }
     }
 }

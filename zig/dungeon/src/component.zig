@@ -1,10 +1,10 @@
 const std = @import("std");
 const zhu = @import("zhu");
 
-const ecs = zhu.ecs;
+const ecs = @import("ecs");
 
-pub const Position = zhu.gfx.Vector;
-pub const Texture = zhu.gfx.Texture;
+pub const Position = zhu.Vector2;
+pub const Texture = zhu.Image;
 pub const TurnState = enum { player, monster, over, win, next };
 pub const Health = struct { current: i32, max: i32 };
 pub const Name = struct { []const u8 };

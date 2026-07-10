@@ -1,10 +1,8 @@
 const std = @import("std");
 const zhu = @import("zhu");
 
-const window = zhu.window;
-const gfx = zhu.gfx;
-const camera = zhu.camera;
-const ecs = zhu.ecs;
+const ecs = @import("ecs");
+const game = @import("world.zig");
 
 const map = @import("map.zig");
 const player = @import("player.zig");
@@ -24,26 +22,21 @@ const PlayerView = component.PlayerView;
 var isHelp = false;
 var isDebug = false;
 
-pub fn init() void {
-    window.initFont(.{
-        .font = @import("zon/font.zon"),
-        .texture = gfx.loadTexture("assets/font.png", .init(960, 960)),
-    });
-
-    camera.frameStats(true);
-    camera.init(5000);
-    ecs.init(window.allocator);
+pub fn init(allocator: zhu.Allocator) void {
+    zhu.text.init(@import("zon/font.zon"));
+    zhu.text.changeFontSize(16);
+    game.init(allocator.raw);
 
     restart();
 }
 
 fn restart() void {
-    ecs.clear();
+    game.reset();
     initWorld(1);
 }
 
 fn initWorld(mapLevel: u8) void {
-    ecs.w.addContext(TurnState.player);
+    game.turn = .player;
     hud.init();
     map.init(mapLevel);
     player.init();
@@ -52,46 +45,46 @@ fn initWorld(mapLevel: u8) void {
 }
 
 fn nextLevel() void {
-    var reg = ecs.Registry.init(window.allocator);
+    var nextWorld = ecs.World.init(game.world.allocator);
     // 保留拾取的物品
-    var view = ecs.w.view(.{component.Carried});
-    while (view.next()) |entity| {
-        const newEntity = reg.createEntity();
-        reg.add(newEntity, component.Carried{});
-        reg.add(newEntity, component.Item{});
-        reg.add(newEntity, component.PlayerView{});
-        if (view.tryGet(entity, component.Healing)) |heal| {
-            reg.add(newEntity, heal);
+    var query = game.world.query(.{ component.Carried, component.Name });
+    while (query.next()) |entity| {
+        const newEntity = nextWorld.createEntity();
+        nextWorld.add(newEntity, component.Carried{});
+        nextWorld.add(newEntity, component.Item{});
+        nextWorld.add(newEntity, component.PlayerView{});
+        if (game.world.get(entity, component.Healing)) |heal| {
+            nextWorld.add(newEntity, heal);
         }
-        if (view.tryGet(entity, component.Damage)) |damage| {
-            reg.add(newEntity, damage);
+        if (game.world.get(entity, component.Damage)) |damage| {
+            nextWorld.add(newEntity, damage);
         }
-        reg.add(newEntity, view.get(entity, component.Name));
+        nextWorld.add(newEntity, query.get(entity, component.Name));
     }
     // 保留角色攻击力
-    const damage = ecs.w.get(player.entity, component.Damage);
-    const health = ecs.w.get(player.entity, component.Health);
+    const damage = game.world.get(player.entity, component.Damage).?;
+    const health = game.world.get(player.entity, component.Health).?;
 
-    ecs.w.deinit();
-    ecs.registry = reg;
+    game.world.deinit();
+    game.world = nextWorld;
     // 保留地图等级
     initWorld(map.currentLevel + 1);
-    ecs.w.add(player.entity, damage);
-    ecs.w.add(player.entity, health);
+    game.world.add(player.entity, damage);
+    game.world.add(player.entity, health);
 }
 
 pub fn update(_: f32) void {
-    if (window.isKeyRelease(.H)) isHelp = !isHelp;
-    if (window.isKeyRelease(.X)) isDebug = !isDebug;
+    if (zhu.key.released(.H)) isHelp = !isHelp;
+    if (zhu.key.released(.X)) isDebug = !isDebug;
 
-    if (window.isKeyDown(.LEFT_ALT) and window.isKeyRelease(.ENTER)) {
-        return window.toggleFullScreen();
+    if (zhu.key.held(.LEFT_ALT) and zhu.key.released(.ENTER)) {
+        return zhu.window.toggleFullScreen();
     }
 
-    if (window.isKeyRelease(.M)) map.minMap = !map.minMap;
+    if (zhu.key.released(.M)) map.minMap = !map.minMap;
 
-    switch (ecs.w.getContext(TurnState).?) {
-        .over, .win => if (window.isKeyRelease(._1)) restart(),
+    switch (game.turn) {
+        .over, .win => if (zhu.key.released(._1)) restart(),
         .player => player.update(),
         .monster => monster.update(),
         .next => nextLevel(),
@@ -99,25 +92,18 @@ pub fn update(_: f32) void {
 }
 
 pub fn draw() void {
-    camera.beginDraw(.{});
-    defer camera.endDraw();
-
-    window.keepAspectRatio();
     sceneCall("draw", .{});
 
-    if (map.minMap) camera.mode = .local;
+    if (map.minMap) zhu.camera.push(.windowScale(.zero, .square(0.25)));
+    defer if (map.minMap) zhu.camera.pop();
+
     map.draw();
 
-    var view = ecs.w.view(.{ gfx.Texture, Position, PlayerView });
-    while (view.next()) |entity| {
-        const pos = view.get(entity, Position);
-        camera.draw(view.get(entity, gfx.Texture), pos);
-    }
-    if (map.minMap) {
-        camera.scale = .init(0.25, 0.25);
-        camera.flushTexture();
-        camera.scale = .init(1, 1);
-        camera.mode = .world;
+    var query = game.world.query(.{ zhu.Image, Position, PlayerView });
+    while (query.next()) |entity| {
+        const pos = query.get(entity, Position);
+        const image = query.get(entity, zhu.Image);
+        zhu.batch.drawImage(image, pos, .{});
     }
 
     hud.draw();
@@ -140,60 +126,17 @@ fn drawHelpInfo() void {
     }
     debutTextCount = count;
 
-    camera.drawColorText(text, .init(10, 5), .green);
+    zhu.text.draw(text, .xy(10, 5), .{ .color = .green });
 }
 
 var debutTextCount: u32 = 0;
 fn drawDebugInfo() void {
-    var buffer: [1024]u8 = undefined;
-    const format =
-        \\后端：{s}
-        \\帧率：{}
-        \\帧时：{d:.2}
-        \\用时：{d:.2}
-        \\显存：{}
-        \\常量：{}
-        \\绘制：{}
-        \\图片：{}
-        \\文字：{}
-        \\内存：{}
-        \\鼠标：{d:.2}，{d:.2}
-        \\相机：{d:.2}，{d:.2}
-    ;
-
-    const stats = camera.queryFrameStats();
-    const text = zhu.format(&buffer, format, .{
-        @tagName(camera.queryBackend()),
-        window.frameRate,
-        window.frameDeltaPerSecond,
-        window.usedDeltaPerSecond,
-        stats.size_append_buffer + stats.size_update_buffer,
-        stats.size_apply_uniforms,
-        stats.num_draw,
-        camera.imageDrawCount(),
-        // Debug 信息本身的次数也应该统计进去
-        camera.textDrawCount() + debutTextCount,
-        window.countingAllocator.used,
-        window.mousePosition.x,
-        window.mousePosition.y,
-        camera.position.x,
-        camera.position.y,
-    });
-
-    var iterator = std.unicode.Utf8View.initUnchecked(text).iterator();
-    var count: u32 = 0;
-    while (iterator.nextCodepoint()) |code| {
-        if (code == '\n') continue;
-        count += 1;
-    }
-    debutTextCount = count;
-
-    camera.drawColorText(text, .init(10, 5), .green);
+    zhu.debug.draw(&.{});
 }
 
 pub fn deinit() void {
     sceneCall("deinit", .{});
-    ecs.deinit();
+    game.deinit();
 }
 
 fn sceneCall(comptime function: []const u8, args: anytype) void {

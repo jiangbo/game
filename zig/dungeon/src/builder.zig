@@ -19,10 +19,10 @@ pub fn buildRooms(tiles: []Tile, spawns: []TilePosition) void {
         var room: TileRect = undefined;
         label: {
             room = TileRect{
-                .x = zhu.randomInt(u8, 1, WIDTH - 10),
-                .y = zhu.randomInt(u8, 1, HEIGHT - 10),
-                .w = zhu.randomInt(u8, 2, 10),
-                .h = zhu.randomInt(u8, 2, 10),
+                .x = zhu.random.int(u8, 1, WIDTH - 10),
+                .y = zhu.random.int(u8, 1, HEIGHT - 10),
+                .w = zhu.random.int(u8, 2, 10),
+                .h = zhu.random.int(u8, 2, 10),
             };
 
             for (0..roomIndex) |idx| {
@@ -51,7 +51,7 @@ fn buildCorridors(tiles: []Tile, rooms: []TileRect) void {
     for (rooms[1..], 1..) |room, roomIndex| {
         const prev = rooms[roomIndex - 1].center();
         const new = room.center();
-        if (zhu.randomInt(u8, 0, 2) == 1) {
+        if (zhu.random.int(u8, 0, 2) == 1) {
             applyHorizontal(tiles, prev.x, new.x, prev.y);
             applyVertical(tiles, prev.y, new.y, new.x);
         } else {
@@ -75,7 +75,7 @@ fn applyHorizontal(tiles: []Tile, x1: usize, x2: usize, y: usize) void {
 
 pub fn buildAutometa(tiles: []Tile, spawns: []TilePosition) void {
     for (tiles) |*value| {
-        const roll = zhu.randomInt(u8, 0, 100);
+        const roll = zhu.random.int(u8, 0, 100);
         value.* = if (roll > 55) .floor else .wall;
     }
 
@@ -102,7 +102,7 @@ pub fn buildAutometa(tiles: []Tile, spawns: []TilePosition) void {
                     break :blk;
                 }
             }
-            const dir = neighborDir[zhu.randomIntMost(u8, 0, 7)];
+            const dir = neighborDir[zhu.random.intMost(u8, 0, 7)];
             x, y = .{ x +% dir.x, y +% dir.y };
         } else spawns[0] = .{ .x = x, .y = y };
     }
@@ -137,9 +137,9 @@ fn spawnMonster(tiles: []Tile, spawns: []TilePosition) void {
 }
 
 fn spawnRandomMonster(tiles: []Tile) TilePosition {
-    var roll = zhu.randomInt(u16, 0, HEIGHT * WIDTH);
+    var roll = zhu.random.int(u16, 0, HEIGHT * WIDTH);
     while (tiles[roll] == .wall) {
-        roll = zhu.randomInt(u16, 0, HEIGHT * WIDTH);
+        roll = zhu.random.int(u16, 0, HEIGHT * WIDTH);
     }
     const x, const y = .{ roll % WIDTH, roll / WIDTH };
     return .{ .x = @intCast(x), .y = @intCast(y) };
@@ -160,8 +160,8 @@ pub fn buildDrunkard(tiles: []Tile, spawns: []TilePosition) void {
             if (value == .floor) count += 1;
         }
         start = .{
-            .x = zhu.randomInt(u8, 0, WIDTH),
-            .y = zhu.randomInt(u8, 0, HEIGHT),
+            .x = zhu.random.int(u8, 0, WIDTH),
+            .y = zhu.random.int(u8, 0, HEIGHT),
         };
     }
 
@@ -175,7 +175,7 @@ fn drunkard(tiles: []Tile, start: TilePosition) void {
         const index = indexUsize(pos.x, pos.y);
         tiles[index] = .floor;
 
-        switch (zhu.randomInt(u8, 0, 4)) {
+        switch (zhu.random.int(u8, 0, 4)) {
             0 => pos.x += 1,
             1 => pos.x +%= 0xFF,
             2 => pos.y += 1,

@@ -1,44 +1,45 @@
 const std = @import("std");
-const builtin = @import("builtin");
+const zhu = @import("zhu");
 
-const window = @import("zhu").window;
 const scene = @import("scene.zig");
 
-pub extern "Imm32" fn ImmDisableIME(i32) std.os.windows.BOOL;
+var vertexBuffer: []zhu.batch.Vertex = undefined;
+var commandBuffer: [128]zhu.batch.Command = undefined;
 
-pub fn init() void {
-    scene.init();
+pub fn init(allocator: zhu.Allocator) void {
+    vertexBuffer = allocator.alloc(zhu.batch.Vertex, 5000);
+    zhu.batch.init(vertexBuffer, &commandBuffer);
+
+    zhu.batch.circleImage = zhu.assets.loadImage(
+        "circle.png",
+        .xy(128, 128),
+    );
+    const size = zhu.batch.circleImage.size;
+    const rect = zhu.Rect.init(.zero, size).centerScale(0.25);
+    zhu.batch.whiteImage = zhu.batch.circleImage.sub(rect);
+
+    scene.init(allocator);
 }
 
 pub fn frame(delta: f32) void {
     scene.update(delta);
+
+    zhu.batch.beginDraw();
+    zhu.batch.useTarget(.black, .{});
     scene.draw();
+    zhu.batch.endDraw();
 }
 
-pub fn deinit() void {
+pub fn deinit(allocator: zhu.Allocator) void {
     scene.deinit();
+    allocator.free(vertexBuffer);
 }
 
-pub fn main() void {
-    var allocator: std.mem.Allocator = undefined;
-    var debugAllocator: std.heap.DebugAllocator(.{}) = undefined;
-    if (builtin.mode == .Debug) {
-        debugAllocator = std.heap.DebugAllocator(.{}).init;
-        allocator = debugAllocator.allocator();
-    } else {
-        allocator = std.heap.c_allocator;
-    }
-
-    defer if (builtin.mode == .Debug) {
-        _ = debugAllocator.deinit();
-    };
-
-    if (builtin.os.tag == .windows) {
-        _ = ImmDisableIME(-1);
-    }
-
-    window.run(allocator, .{
+pub fn main(initInfo: std.process.Init) void {
+    zhu.window.run(initInfo.io, initInfo.gpa, .{
         .title = "地宫探险",
-        .logicSize = .{ .x = 640, .y = 400 },
+        .size = .xy(1280, 800),
+        .logicSize = .xy(640, 400),
+        .scaleEnum = .fit,
     });
 }
