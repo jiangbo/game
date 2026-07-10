@@ -12,13 +12,13 @@ const Background = struct {
 
     fn update(self: *Background, delta: f32, speed: f32) void {
         self.offset -= speed * delta;
-        if (self.offset > 0) self.offset -= self.image.area.size.x;
+        if (self.offset > 0) self.offset -= self.image.size.x;
     }
 
     fn draw(self: *const Background, y: f32) void {
         // 填满 X 轴
         var x: f32 = self.offset;
-        while (x < zhu.window.size.x) : (x += self.image.area.size.x) {
+        while (x < zhu.window.size.x) : (x += self.image.size.x) {
             zhu.batch.drawImage(self.image, .xy(@round(x), y), .{});
         }
     }
@@ -29,10 +29,10 @@ var mid: Background = undefined;
 var showHelp: bool = false;
 
 pub fn init() void {
-    far = .{ .image = zhu.getImage("textures/Layers/back.png") };
-    mid = .{ .image = zhu.getImage("textures/Layers/middle.png") };
+    far = .{ .image = zhu.getImage("textures/Layers/back.png").? };
+    mid = .{ .image = zhu.getImage("textures/Layers/middle.png").? };
 
-    zhu.audio.playMusic("assets/audio/platformer_level03_loop.ogg");
+    zhu.audio.playMusic("audio/platformer_level03_loop.ogg");
     menu.menuIndex = 0;
 }
 
@@ -41,7 +41,7 @@ pub fn update(delta: f32) void {
     mid.update(delta, 60);
 
     if (showHelp) {
-        if (zhu.window.isAnyRelease()) showHelp = false;
+        if (zhu.key.changed or zhu.mouse.changed) showHelp = false;
         return;
     }
 
@@ -60,9 +60,9 @@ pub fn draw() void {
     far.draw(0);
     mid.draw(96);
 
-    const titleImageId = zhu.imageId("textures/UI/title-screen.png");
     const center = zhu.window.size.scale(0.5);
-    batch.drawImageId(titleImageId, center.addY(-50), .{
+    const titleImage = zhu.getImage("textures/UI/title-screen.png").?;
+    batch.drawImage(titleImage, center.addY(-50), .{
         .scale = .xy(2, 2),
         .anchor = .center,
     });
@@ -70,14 +70,15 @@ pub fn draw() void {
     menu.draw();
     // 底部信息栏
     const strPos: zhu.Vector2 = .xy(center.x, zhu.window.size.y - 26);
-    zhu.text.drawTextCenter("SunnyLand Credits: XXX - 2025", strPos, .{
+    zhu.text.draw("SunnyLand Credits: XXX - 2025", strPos, .{
+        .anchor = .center,
         .color = .rgba(0.8, 0.8, 0.8, 1),
     });
     if (!showHelp) return;
 
     // 绘制帮助界面
-    const helpImageId = zhu.imageId("textures/UI/instructions.png");
-    batch.drawImageId(helpImageId, center, .{
+    const helpImage = zhu.getImage("textures/UI/instructions.png").?;
+    batch.drawImage(helpImage, center, .{
         .scale = .xy(2, 2),
         .anchor = .center,
     });

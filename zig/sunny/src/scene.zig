@@ -23,13 +23,15 @@ const savePath = "save/save.dat";
 var session: Session = .{};
 var state: StateEnum = .title;
 var win: bool = false;
+var allocator: zhu.Allocator = undefined;
 
-pub fn init() void {
-    batch.camera.position = .zero;
+pub fn init(allocator_: zhu.Allocator) void {
+    allocator = allocator_;
+    zhu.camera.main.position = .zero;
     if (state == .title) return title.init();
 
     menu.menuIndex = 1;
-    map.init(session.level);
+    map.init(allocator, session.level);
 
     for (map.objects.items, 0..) |obj, index| {
         if (obj.type != .player) continue;
@@ -41,19 +43,19 @@ pub fn init() void {
     }
     object.init(map.objects);
 
-    zhu.audio.playMusic("assets/audio/hurry_up_and_run.ogg");
+    zhu.audio.playMusic("audio/hurry_up_and_run.ogg");
 }
 
 pub fn start() void {
     state = .play;
     session = .{};
-    init();
+    init(allocator);
 }
 
 pub fn load() void {
     state = .play;
     session = loadSession();
-    init();
+    init(allocator);
 }
 
 fn loadSession() Session {
@@ -87,22 +89,22 @@ pub fn changeNextLevel() void {
     } else {
         session.level += 1;
         saveSession() catch unreachable;
-        init();
+        init(allocator);
     }
 }
 
 fn backToTitle() void {
     state = .title;
     std.log.info("back to title", .{});
-    init();
+    init(allocator);
 }
 
-pub fn deinit() void {
-    map.deinit();
+pub fn deinit(allocator_: zhu.Allocator) void {
+    map.deinit(allocator_);
 }
 
 pub fn update(delta: f32) void {
-    if (window.isKeyDown(.LEFT_ALT) and window.isKeyReleased(.ENTER)) {
+    if (zhu.key.held(.LEFT_ALT) and zhu.key.released(.ENTER)) {
         return window.toggleFullScreen();
     }
 
@@ -110,13 +112,13 @@ pub fn update(delta: f32) void {
         .title => title.update(delta),
         .play => {
             // 玩家死亡
-            if (player.position.y > map.map.size().y + 10) {
+            if (player.position.y > map.map.grid.size().y + 10) {
                 state = .over;
                 menu.menuIndex = 2;
             }
             player.update(delta);
             object.update(delta);
-            if (zhu.window.isKeyReleased(.ESCAPE)) state = .pause;
+            if (zhu.key.released(.ESCAPE)) state = .pause;
         },
         .pause => if (menu.update()) |event| {
             switch (event) {
@@ -138,7 +140,8 @@ pub fn update(delta: f32) void {
 }
 
 pub fn draw() void {
-    zhu.batch.beginDraw(.black);
+    zhu.batch.beginDraw();
+    zhu.batch.useTarget(.black, .{});
     defer zhu.batch.endDraw();
 
     if (state == .title) return title.draw();
@@ -147,13 +150,16 @@ pub fn draw() void {
     object.draw();
     player.draw();
 
-    batch.camera.modeEnum = .window;
-    defer batch.camera.modeEnum = .world;
+    zhu.camera.push(.window);
+    defer zhu.camera.pop();
 
     if (state == .pause) {
         const size = zhu.window.size;
         const pos: zhu.Vector2 = .xy(size.x * 0.5, size.y * 0.2);
-        zhu.text.drawTextCenter("PAUSE", pos, .{ .size = 32 });
+        zhu.text.draw("PAUSE", pos, .{
+            .anchor = .center,
+            .scale = zhu.text.sizeToScale(32),
+        });
         menu.draw();
     } else if (state == .over) drawOver();
 }
@@ -164,29 +170,26 @@ fn drawOver() void {
 
     const size = zhu.window.size;
     var pos: zhu.Vector2 = .xy(size.x * 0.5, size.y * 0.3);
-    zhu.text.drawTextCenter(str, pos, .{
-        .size = 48,
+    zhu.text.draw(str, pos, .{
+        .anchor = .center,
+        .scale = zhu.text.sizeToScale(48),
         .color = color,
     });
 
     var buffer: [128]u8 = undefined;
     var text = zhu.text.format(&buffer, "Score: {}", .{player.score});
     pos = .xy(size.x * 0.5, size.y * 0.5);
-    zhu.text.drawTextCenter(text, pos, .{ .size = 32 });
+    zhu.text.draw(text, pos, .{
+        .anchor = .center,
+        .scale = zhu.text.sizeToScale(32),
+    });
 
     text = zhu.text.format(&buffer, "High Score: {}", .{session.highScore});
     pos = .xy(size.x * 0.5, size.y * 0.6);
-    zhu.text.drawTextCenter(text, pos, .{ .size = 32 });
+    zhu.text.draw(text, pos, .{
+        .anchor = .center,
+        .scale = zhu.text.sizeToScale(32),
+    });
 
     menu.draw();
-}
-
-fn drawHelpInfo() void {
-    const text =
-        \\按键说明：
-        \\上：W，下：S，左：A，右：D
-        \\确定：F，取消：Q，菜单：E
-        \\帮助：H  按一次打开，再按一次关闭
-    ;
-    zhu.text.drawColor(text, .xy(10, 10), .green);
 }

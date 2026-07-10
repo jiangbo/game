@@ -27,7 +27,7 @@ var buttonState: ButtonState = .normal;
 
 pub fn update() ?u8 {
     const menu = menus[menuIndex];
-    const mousePos = zhu.window.mousePosition;
+    const mousePos = zhu.window.mouse;
     const position = menu.position;
 
     for (menu.buttons, 0..menu.buttons.len) |button, i| {
@@ -37,14 +37,14 @@ pub fn update() ?u8 {
         const buttonArea = zhu.Rect.init(buttonPos, button.size);
 
         const hover = buttonArea.contains(mousePos);
-        const press = zhu.window.isMouseDown(.LEFT);
+        const press = zhu.mouse.held(.LEFT);
         if (hover) {
             if (buttonIndex == null) {
                 // 刚刚进入悬停状态，播放音效
-                zhu.audio.playSound("assets/audio/button_hover.ogg");
+                zhu.audio.playSound("audio/button_hover.ogg");
             }
-            if (zhu.window.isMouseReleased(.LEFT)) {
-                zhu.audio.playSound("assets/audio/button_click.ogg");
+            if (zhu.mouse.released(.LEFT)) {
+                zhu.audio.playSound("audio/button_click.ogg");
                 return button.event;
             }
             buttonIndex = i;
@@ -67,12 +67,13 @@ pub fn draw() void {
 
         if (i == buttonIndex and buttonState != .normal) {
             if (buttonState == .pressed) {
-                batch.drawImageId(button.pressed, pos, .{});
+                const image = zhu.assets.getImage(button.pressed).?;
+                batch.drawImage(image, pos, .{});
             } else if (buttonState == .hover) {
-                batch.drawImageId(button.hover, pos, .{});
+                batch.drawImage(zhu.assets.getImage(button.hover).?, pos, .{});
             }
         } else {
-            batch.drawImageId(button.normal, pos, .{});
+            batch.drawImage(zhu.assets.getImage(button.normal).?, pos, .{});
         }
     }
 }

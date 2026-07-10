@@ -34,14 +34,24 @@ var hurtTimer: zhu.Timer = .initFinished(2.0); // 受伤的间隔时间
 pub fn init(pos: zhu.Vector2, size: zhu.Vector2) void {
     position = pos;
     viewSize = size;
-    const imageId = zhu.imageId("textures/Actors/foxy.png");
-    tile = tiled.getTileByImageId(imageId);
+    const imageId = zhu.assets.id("textures/Actors/foxy.png");
+    tile = getTileByImageId(imageId);
     tiledObject = tile.objectGroup.?.objects[0];
 
-    image = zhu.assets.getImage(imageId).sub(.init(.zero, imageSize));
+    const playerImage = zhu.getImage("textures/Actors/foxy.png").?;
+    image = playerImage.sub(.init(.zero, imageSize));
     inline for (std.meta.fields(State)) |field| field.type.init();
 
     state.enter();
+}
+
+fn getTileByImageId(imageId: u32) tiled.Tile {
+    for (map.map.tileSets) |tileSet| {
+        for (tileSet.tiles) |item| {
+            if (item.id == imageId) return item;
+        }
+    }
+    unreachable;
 }
 
 pub fn update(delta: f32) void {
@@ -52,7 +62,7 @@ pub fn update(delta: f32) void {
     velocity.x = std.math.clamp(velocity.x, -maxSpeed, maxSpeed);
     var toPosition = position.add(velocity.scale(delta));
     // 角色不移动到屏幕外
-    const max = batch.camera.bound.x - tiledObject.size.x;
+    const max = zhu.camera.bound.x - tiledObject.size.x;
     toPosition.x = std.math.clamp(toPosition.x, 0, max);
 
     if (state == .dead) position = toPosition else {
@@ -62,7 +72,7 @@ pub fn update(delta: f32) void {
             velocity.y = 0;
             position = .xy(toPosition.x, position.y);
             const canClimb = map.canClimb(toPosition, size);
-            if (zhu.window.isKeyDown(.S) and canClimb) {
+            if (zhu.key.held(.S) and canClimb) {
                 changeState(.climb);
                 position = toPosition;
             }
@@ -83,8 +93,8 @@ pub fn update(delta: f32) void {
         velocity = .zero;
     } else force.y = gravity;
 
-    batch.camera.smoothFollow(position, delta * 4);
-    batch.camera.position = batch.camera.position.round();
+    zhu.camera.smoothFollow(position, delta * 4);
+    zhu.camera.roundPosition();
 }
 
 pub fn collideRect() zhu.Rect {
@@ -107,21 +117,21 @@ pub fn draw() void {
         if (hurtTimer.isEvenStep(0.15)) state.draw();
     } else state.draw();
 
-    batch.camera.modeEnum = .window;
-    defer batch.camera.modeEnum = .world;
+    zhu.camera.push(.window);
+    defer zhu.camera.pop();
 
     // 绘制得分
     const pos: zhu.Vector2 = .xy(zhu.window.size.x - 100, 10);
-    zhu.text.drawFmt("Score: {}", pos, .{score});
+    zhu.text.drawFmt("Score: {}", .{score}, pos, .{});
 
     // 绘制生命值
     const startPos: zhu.Vector2 = .xy(10, 10);
-    const healthId = zhu.imageId("textures/UI/Heart.png");
-    const backId = zhu.imageId("textures/UI/Heart-bg.png");
+    const healthImage = zhu.getImage("textures/UI/Heart.png").?;
+    const backImage = zhu.getImage("textures/UI/Heart-bg.png").?;
     for (0..maxHealth) |index| {
-        const imageId = if (index < health) healthId else backId;
+        const img = if (index < health) healthImage else backImage;
         const i: f32 = @floatFromInt(index);
-        batch.drawImageId(imageId, startPos.addX(25 * i), .{
+        batch.drawImage(img, startPos.addX(25 * i), .{
             .size = .xy(20, 18), // 图片太大，缩小显示
         });
     }
@@ -129,7 +139,10 @@ pub fn draw() void {
 
 pub fn drawPlayer(img: zhu.graphics.Image) void {
     const pos = position.sub(tiledObject.position);
-    batch.drawImage(img, pos, .{ .flipX = flip, .size = viewSize });
+    batch.drawImage(img, pos, .{
+        .uvRect = img.uvFlip(flip, false),
+        .size = viewSize,
+    });
 }
 
 const State = union(enum) {
@@ -171,7 +184,7 @@ const IdleState = struct {
 
     pub fn init() void {
         const idleImage = image.sub(.init(.zero, .xy(32, 128)));
-        animation = .init(idleImage, &frames);
+        animation = .init(idleImage, imageSize, &frames);
     }
 
     fn enter() void {
@@ -180,22 +193,22 @@ const IdleState = struct {
     }
 
     fn update(delta: f32) void {
-        animation.loopUpdate(delta);
+        _ = animation.update(delta);
 
         if (map.isTouchLadder(position, tiledObject.size) and
-            zhu.window.isAnyKeyDown(&.{ .W, .DOWN }))
+            zhu.key.anyHeld(&.{ .W, .DOWN }))
         {
             changeState(.climb);
         }
-        if (zhu.window.isKeyPressed(.SPACE)) {
+        if (zhu.key.pressed(.SPACE)) {
             changeState(.jump);
-        } else if (zhu.window.isAnyKeyDown(&.{ .A, .D, .LEFT, .RIGHT })) {
+        } else if (zhu.key.anyHeld(&.{ .A, .D, .LEFT, .RIGHT })) {
             changeState(.walk);
         } else velocity.x *= factor; // 减速
     }
 
     fn draw() void {
-        drawPlayer(animation.currentImage());
+        drawPlayer(animation.subImage());
     }
 };
 
@@ -205,7 +218,7 @@ const WalkState = struct {
 
     pub fn init() void {
         const walkImage = image.sub(.init(.xy(0, 32), .xy(32, 198)));
-        animation = .init(walkImage, &frames);
+        animation = .init(walkImage, imageSize, &frames);
     }
 
     fn enter() void {
@@ -213,19 +226,19 @@ const WalkState = struct {
     }
 
     fn update(delta: f32) void {
-        animation.loopUpdate(delta);
+        _ = animation.update(delta);
         force.x = 0;
 
         if (velocity.y > 0) return changeState(.fall);
 
-        if (zhu.window.isAnyKeyPressed(&.{.SPACE})) {
+        if (zhu.key.anyPressed(&.{.SPACE})) {
             changeState(.jump);
         }
 
-        if (zhu.window.isAnyKeyDown(&.{ .A, .LEFT })) {
+        if (zhu.key.anyHeld(&.{ .A, .LEFT })) {
             force.x = -moveForce;
             flip = true;
-        } else if (zhu.window.isAnyKeyDown(&.{ .D, .RIGHT })) {
+        } else if (zhu.key.anyHeld(&.{ .D, .RIGHT })) {
             force.x = moveForce;
             flip = false;
         } else {
@@ -234,7 +247,7 @@ const WalkState = struct {
     }
 
     fn draw() void {
-        drawPlayer(animation.currentImage());
+        drawPlayer(animation.subImage());
     }
 };
 const JumpState = struct {
@@ -247,7 +260,7 @@ const JumpState = struct {
     fn enter() void {
         std.log.info("enter jump", .{});
         velocity.y = -jumpSpeed;
-        zhu.audio.playSound("assets/audio/cartoon-jump-6462.ogg");
+        zhu.audio.playSound("audio/cartoon-jump-6462.ogg");
     }
 
     fn update(_: f32) void {
@@ -289,7 +302,7 @@ const HurtState = struct {
 
     pub fn init() void {
         const hurtImage = image.sub(.init(.xy(0, 128), .xy(64, 32)));
-        animation = .init(hurtImage, &frames);
+        animation = .init(hurtImage, imageSize, &frames);
     }
 
     fn enter() void {
@@ -298,21 +311,21 @@ const HurtState = struct {
         if (flip) vel.x = -vel.x;
         velocity = .xy(vel.x, velocity.y + vel.y);
         timer.elapsed = 0; // 重置计时器
-        zhu.audio.playSound("assets/audio/monster.ogg");
+        zhu.audio.playSound("audio/monster.ogg");
     }
 
     fn update(delta: f32) void {
-        animation.loopUpdate(delta);
+        _ = animation.update(delta);
 
         if (velocity.y == 0) {
             changeState(.idle);
-        } else if (timer.isFinishedOnceUpdate(delta)) {
+        } else if (timer.updateFinished(delta)) {
             changeState(.fall);
         }
     }
 
     fn draw() void {
-        drawPlayer(animation.currentImage());
+        drawPlayer(animation.subImage());
     }
 };
 
@@ -322,21 +335,21 @@ const DeadState = struct {
 
     pub fn init() void {
         const hurtImage = image.sub(.init(.xy(0, 128), .xy(64, 32)));
-        animation = .init(hurtImage, &frames);
+        animation = .init(hurtImage, imageSize, &frames);
     }
 
     fn enter() void {
         std.log.info("enter dead", .{});
         velocity = .xy(0, -200);
-        zhu.audio.playSound("assets/audio/dead-8bit-41400.ogg");
+        zhu.audio.playSound("audio/dead-8bit-41400.ogg");
     }
 
     fn update(delta: f32) void {
-        animation.loopUpdate(delta);
+        _ = animation.update(delta);
     }
 
     fn draw() void {
-        drawPlayer(animation.currentImage());
+        drawPlayer(animation.subImage());
     }
 };
 
@@ -347,7 +360,7 @@ const ClimbState = struct {
 
     pub fn init() void {
         const climbImage = image.sub(.init(.xy(0, 64), .xy(128, 32)));
-        animation = .init(climbImage, &frames);
+        animation = .init(climbImage, imageSize, &frames);
     }
 
     fn enter() void {
@@ -357,18 +370,18 @@ const ClimbState = struct {
     }
 
     fn update(delta: f32) void {
-        if (zhu.window.isKeyDown(.W)) {
+        if (zhu.key.held(.W)) {
             velocity.y = -speed;
-        } else if (zhu.window.isKeyDown(.S)) {
+        } else if (zhu.key.held(.S)) {
             velocity.y = speed;
-        } else if (zhu.window.isKeyDown(.A)) {
+        } else if (zhu.key.held(.A)) {
             velocity.x = -speed;
-        } else if (zhu.window.isKeyDown(.D)) {
+        } else if (zhu.key.held(.D)) {
             velocity.x = speed;
         } else velocity = .zero;
 
         if (velocity.x != 0 or velocity.y != 0) {
-            animation.loopUpdate(delta);
+            _ = animation.update(delta);
         }
 
         if (!map.isTouchLadder(position, tiledObject.size)) {
@@ -377,6 +390,6 @@ const ClimbState = struct {
     }
 
     fn draw() void {
-        drawPlayer(animation.currentImage());
+        drawPlayer(animation.subImage());
     }
 };

@@ -1,5 +1,4 @@
 const std = @import("std");
-const builtin = @import("builtin");
 const zhu = @import("zhu");
 
 const scene = @import("scene.zig");
@@ -8,23 +7,22 @@ var vertexBuffer: []zhu.batch.Vertex = undefined;
 var commandBuffer: [16]zhu.batch.Command = undefined;
 var soundBuffer: [20]zhu.audio.Sound = undefined;
 
-const font: zhu.text.BitMapFont = @import("zon/font.zon");
+const font: zhu.text.Font = @import("zon/font.zon");
 const atlas: zhu.Atlas = @import("zon/atlas.zon");
 
-pub fn init() void {
+pub fn init(allocator: zhu.Allocator) void {
     zhu.audio.init(44100 / 2, &soundBuffer);
 
-    vertexBuffer = zhu.assets.oomAlloc(zhu.batch.Vertex, 5000);
-    zhu.graphics.frameStats(true);
+    vertexBuffer = allocator.alloc(zhu.batch.Vertex, 5000);
     zhu.assets.loadAtlas(atlas);
     zhu.batch.init(vertexBuffer, &commandBuffer);
-    const whiteCircle = zhu.getImage("circle.png");
-    const area: zhu.Rect = .init(.xy(16, 16), .xy(32, 32));
-    zhu.batch.whiteImage = whiteCircle.sub(area);
+    zhu.batch.circleImage = zhu.getImage("circle.png").?;
+    const size = zhu.batch.circleImage.size;
+    const rect = zhu.Rect.init(.zero, size).centerScale(0.25);
+    zhu.batch.whiteImage = zhu.batch.circleImage.sub(rect);
 
-    const fontImage = zhu.getImage("font.png");
-    zhu.text.initBitMapFont(fontImage, font, 16);
-    scene.init();
+    zhu.text.init(font);
+    scene.init(allocator);
 }
 
 pub fn frame(delta: f32) void {
@@ -32,27 +30,14 @@ pub fn frame(delta: f32) void {
     scene.draw();
 }
 
-pub fn deinit() void {
-    scene.deinit();
-    zhu.assets.free(vertexBuffer);
+pub fn deinit(allocator: zhu.Allocator) void {
+    scene.deinit(allocator);
+    allocator.free(vertexBuffer);
     zhu.audio.deinit();
 }
 
-pub fn main() void {
-    var allocator: std.mem.Allocator = undefined;
-    var debugAllocator: std.heap.DebugAllocator(.{}) = undefined;
-    if (builtin.mode == .Debug) {
-        debugAllocator = std.heap.DebugAllocator(.{}).init;
-        allocator = debugAllocator.allocator();
-    } else {
-        allocator = std.heap.c_allocator;
-    }
-
-    defer if (builtin.mode == .Debug) {
-        _ = debugAllocator.deinit();
-    };
-
-    zhu.window.run(allocator, .{
+pub fn main(initInfo: std.process.Init) void {
+    zhu.window.run(initInfo.io, initInfo.gpa, .{
         .title = "阳光岛",
         .size = .xy(1280, 720),
         .logicSize = .xy(640, 360),

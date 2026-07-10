@@ -28,10 +28,10 @@ var spikeImage: zhu.graphics.Image = undefined;
 const frogEnum = enum { idle, jump, fall };
 const frogIdleFrames = zhu.graphics.framesX(4, .xy(35, 32), 0.3);
 const frogJumpFrames: [1]zhu.graphics.Frame = .{
-    .{ .area = .init(.xy(35, 32), .xy(35, 32)) },
+    .{ .offset = .xy(35, 32) },
 };
 const frogFallFrames: [1]zhu.graphics.Frame = .{
-    .{ .area = .init(.xy(70, 32), .xy(35, 32)) },
+    .{ .offset = .xy(70, 32) },
 };
 var frogAnimations: zhu.graphics.EnumAnimation(frogEnum) = undefined;
 var frogState: frogEnum = .idle;
@@ -48,31 +48,33 @@ var objects: std.ArrayList(map.Object) = undefined;
 pub fn init(obj: std.ArrayList(map.Object)) void {
     objects = obj;
 
-    const gemImage = getImage(@intFromEnum(map.ObjectEnum.gem));
-    gemAnimation = .init(gemImage, &gemFrames);
+    const gemImage = getImage(@intFromEnum(map.ObjectEnum.gem)).?;
+    gemAnimation = .init(gemImage, .xy(15, 13), &gemFrames);
 
-    const cherryImage = getImage(@intFromEnum(map.ObjectEnum.cherry));
-    cherryAnimation = .init(cherryImage, &cherryFrames);
+    const cherryImage = getImage(@intFromEnum(map.ObjectEnum.cherry)).?;
+    cherryAnimation = .init(cherryImage, .xy(21, 21), &cherryFrames);
 
-    const opossumImage = getImage(@intFromEnum(map.ObjectEnum.opossum));
-    opossumAnimation = .init(opossumImage, &opossumFrames);
+    const opossumImage = getImage(@intFromEnum(map.ObjectEnum.opossum)).?;
+    opossumAnimation = .init(opossumImage, .xy(36, 28), &opossumFrames);
 
-    const eagleImage = getImage(@intFromEnum(map.ObjectEnum.eagle));
-    eagleAnimation = .init(eagleImage, &eagleFrames);
+    const eagleImage = getImage(@intFromEnum(map.ObjectEnum.eagle)).?;
+    eagleAnimation = .init(eagleImage, .xy(40, 41), &eagleFrames);
 
-    const frogImage = getImage(@intFromEnum(map.ObjectEnum.frog));
-    frogAnimations.set(.idle, .init(frogImage, &frogIdleFrames));
-    frogAnimations.set(.jump, .init(frogImage, &frogJumpFrames));
-    frogAnimations.set(.fall, .init(frogImage, &frogFallFrames));
+    const frogImage = getImage(@intFromEnum(map.ObjectEnum.frog)).?;
+    frogAnimations.set(.idle, .init(frogImage, .xy(35, 32), &frogIdleFrames));
+    frogAnimations.set(.jump, .init(frogImage, .xy(35, 32), &frogJumpFrames));
+    frogAnimations.set(.fall, .init(frogImage, .xy(35, 32), &frogFallFrames));
 
-    const itemImage = zhu.getImage("textures/FX/item-feedback.png");
-    itemAnimation = .init(itemImage, &itemFrames);
-    const deadImage = zhu.getImage("textures/FX/enemy-deadth.png");
-    deadAnimation = .init(deadImage, &deadFrames);
+    const itemImage = zhu.getImage("textures/FX/item-feedback.png").?;
+    itemAnimation = .init(itemImage, .xy(32, 32), &itemFrames);
+    itemAnimation.loop = false;
+    const deadImage = zhu.getImage("textures/FX/enemy-deadth.png").?;
+    deadAnimation = .init(deadImage, .xy(40, 41), &deadFrames);
+    deadAnimation.loop = false;
     effectAnimations = .initBuffer(&effectArray);
 
-    skullImage = getImage(@intFromEnum(map.ObjectEnum.skull));
-    spikeImage = getImage(@intFromEnum(map.ObjectEnum.spikeTop));
+    skullImage = getImage(@intFromEnum(map.ObjectEnum.skull)).?;
+    spikeImage = getImage(@intFromEnum(map.ObjectEnum.spikeTop)).?;
 
     for (objects.items) |*object| {
         switch (object.type) {
@@ -84,16 +86,16 @@ pub fn init(obj: std.ArrayList(map.Object)) void {
 }
 
 pub fn update(delta: f32) void {
-    gemAnimation.loopUpdate(delta);
-    cherryAnimation.loopUpdate(delta);
-    opossumAnimation.loopUpdate(delta);
-    eagleAnimation.loopUpdate(delta);
-    frogAnimations.getPtr(frogState).loopUpdate(delta);
+    _ = gemAnimation.update(delta);
+    _ = cherryAnimation.update(delta);
+    _ = opossumAnimation.update(delta);
+    _ = eagleAnimation.update(delta);
+    _ = frogAnimations.getPtr(frogState).update(delta);
 
     { // 特效动画
         var iterator = std.mem.reverseIterator(effectAnimations.items);
         while (iterator.nextPtr()) |animation| {
-            if (animation.effect.isFinishedOnceUpdate(delta)) {
+            if (animation.effect.update(delta) == .end) {
                 _ = effectAnimations.swapRemove(iterator.index);
             }
         }
@@ -135,7 +137,7 @@ pub fn update(delta: f32) void {
                         collideEnemy(item, rect.center());
                         _ = objects.swapRemove(iterator.index);
                         player.score += 10;
-                        zhu.audio.playSound("assets/audio/punch2a.ogg");
+                        zhu.audio.playSound("audio/punch2a.ogg");
                     } else player.hurt();
                 },
                 .spike, .spikeTop => player.hurt(),
@@ -167,7 +169,7 @@ const gravity = 980; // 重力
 var jumpTimer: zhu.Timer = .init(2.5);
 var jumpRight: bool = true;
 fn updateFrog(object: *map.Object, delta: f32) void {
-    if (jumpTimer.isFinishedLoopUpdate(delta)) {
+    if (jumpTimer.updateLooped(delta)) {
         const max = object.initPosition.x - 10;
         if (object.position.x > max) jumpRight = false;
         if (object.position.x < max - 90) jumpRight = true;
@@ -193,7 +195,7 @@ fn updateFrog(object: *map.Object, delta: f32) void {
         // 距离足够近才播放声音
         const length2 = clamped.sub(player.position).length2();
         if (length2 < 200 * 200) {
-            zhu.audio.playSound("assets/audio/frog_quak-81741.ogg");
+            zhu.audio.playSound("audio/frog_quak-81741.ogg");
         }
     }
 }
@@ -208,7 +210,7 @@ fn collideItem(object: *map.Object, center: zhu.Vector2) void {
     if (object.type == .gem) player.score += 5 //
     else if (object.type == .cherry) player.heal();
 
-    zhu.audio.playSound("assets/audio/poka01.ogg");
+    zhu.audio.playSound("audio/poka01.ogg");
 }
 
 fn collideEnemy(_: *map.Object, center: zhu.Vector2) void {
@@ -223,11 +225,11 @@ fn collideEnemy(_: *map.Object, center: zhu.Vector2) void {
 pub fn draw() void {
     for (objects.items) |item| {
         const image: ?zhu.graphics.Image = switch (item.type) {
-            .gem => gemAnimation.currentImage(),
-            .cherry => cherryAnimation.currentImage(),
-            .opossum => opossumAnimation.currentImage(),
-            .eagle => eagleAnimation.currentImage(),
-            .frog => frogAnimations.get(frogState).currentImage(),
+            .gem => gemAnimation.subImage(),
+            .cherry => cherryAnimation.subImage(),
+            .opossum => opossumAnimation.subImage(),
+            .eagle => eagleAnimation.subImage(),
+            .frog => frogAnimations.get(frogState).subImage(),
             .skull => skullImage,
             .spikeTop => spikeImage,
             else => null,
@@ -236,13 +238,15 @@ pub fn draw() void {
         if (image) |img| {
             var flip = item.velocity.x > 0;
             if (item.type == .frog) flip = jumpRight;
-            batch.drawImage(img, item.position, .{ .flipX = flip });
+            batch.drawImage(img, item.position, .{
+                .uvRect = img.uvFlip(flip, false),
+            });
         }
     }
 
     // 绘制特效动画
     for (effectAnimations.items) |animation| {
-        const img = animation.effect.currentImage();
+        const img = animation.effect.subImage();
         batch.drawImage(img, animation.center, .{ .anchor = .center });
     }
 }

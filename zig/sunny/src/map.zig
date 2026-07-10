@@ -7,15 +7,15 @@ const tiled = zhu.extend.tiled;
 const Vector2 = zhu.Vector2;
 
 pub const ObjectEnum = enum(u32) {
-    player = zhu.imageId("textures/Actors/foxy.png"),
-    eagle = zhu.imageId("textures/Actors/eagle-attack.png"),
-    frog = zhu.imageId("textures/Actors/frog.png"),
-    opossum = zhu.imageId("textures/Actors/opossum.png"),
-    skull = zhu.imageId("textures/Props/skulls.png"),
-    spike = zhu.imageId("textures/Props/spikes.png"),
-    spikeTop = zhu.imageId("textures/Props/spikes-top.png"),
-    cherry = zhu.imageId("textures/Items/cherry.png"),
-    gem = zhu.imageId("textures/Items/gem.png"),
+    player = zhu.assets.id("textures/Actors/foxy.png"),
+    eagle = zhu.assets.id("textures/Actors/eagle-attack.png"),
+    frog = zhu.assets.id("textures/Actors/frog.png"),
+    opossum = zhu.assets.id("textures/Actors/opossum.png"),
+    skull = zhu.assets.id("textures/Props/skulls.png"),
+    spike = zhu.assets.id("textures/Props/spikes.png"),
+    spikeTop = zhu.assets.id("textures/Props/spikes-top.png"),
+    cherry = zhu.assets.id("textures/Items/cherry.png"),
+    gem = zhu.assets.id("textures/Items/gem.png"),
 };
 
 pub const TileEnum = enum { normal, solid, uniSolid, ladder };
@@ -28,20 +28,24 @@ pub const Object = struct {
     size: Vector2,
     object: ?tiled.Object,
 };
-pub const maps: []const tiled.Map = @import("zon/level.zon");
-pub var map = maps[0];
 const tileSets: []const tiled.TileSet = @import("zon/tile.zon");
+pub const maps = tiled.bind(tileSets, &.{
+    @import("zon/level1.zon"),
+    @import("zon/level2.zon"),
+});
+pub var map = maps[0];
 var tileVertexes: std.ArrayList(batch.Vertex) = .empty;
 pub var objects: std.ArrayList(Object) = .empty;
 var tileStates: []TileEnum = &.{};
+var allocator: zhu.Allocator = undefined;
 
 pub var nextLevelArea: ?zhu.Rect = null;
 
-pub fn init(level: u8) void {
-    tiled.tileSets = tileSets;
+pub fn init(allocator_: zhu.Allocator, level: u8) void {
+    allocator = allocator_;
 
     if (tileStates.len != 0) { // 如果存在之前的数据，则先释放
-        zhu.assets.free(tileStates);
+        allocator.free(tileStates);
         tileVertexes.clearRetainingCapacity();
         objects.clearRetainingCapacity();
         nextLevelArea = null;
@@ -49,9 +53,9 @@ pub fn init(level: u8) void {
 
     map = maps[level];
 
-    tileStates = zhu.assets.oomAlloc(TileEnum, map.width * map.height);
+    tileStates = allocator.alloc(TileEnum, map.grid.count());
     @memset(tileStates, .normal);
-    batch.camera.bound = map.size();
+    zhu.camera.bound = map.grid.size();
 
     for (map.layers) |layer| {
         if (layer.type == .tile) parseTileLayer(&layer) //
@@ -59,52 +63,43 @@ pub fn init(level: u8) void {
     }
 }
 
-pub fn deinit() void {
-    objects.deinit(zhu.assets.allocator);
-    tileVertexes.deinit(zhu.assets.allocator);
-    zhu.assets.free(tileStates);
+pub fn deinit(allocator_: zhu.Allocator) void {
+    objects.deinit(allocator_.raw);
+    tileVertexes.deinit(allocator_.raw);
+    allocator_.free(tileStates);
 }
 
 fn parseTileLayer(layer: *const tiled.Layer) void {
-    const firstTileSet = tiled.getTileSetByRef(map.tileSetRefs[0]);
-    var firstImage = zhu.assets.getImage(firstTileSet.image);
     for (layer.data, 0..) |gid, index| {
         if (gid == 0) continue;
 
-        const x: f32 = @floatFromInt(index % map.width);
-        const y: f32 = @floatFromInt(index / map.width);
-        var pos = map.tileSize.mul(.xy(x, y));
+        const width: usize = @intCast(map.grid.width);
+        const x: f32 = @floatFromInt(index % width);
+        const y: f32 = @floatFromInt(index / width);
+        var pos = map.grid.cellSize().mul(.xy(x, y));
 
-        var image: zhu.graphics.Image = undefined;
-        const tileSetRef = map.getTileSetRefByGid(gid);
-        const tileSet = tiled.getTileSetByRef(tileSetRef);
-        const localId = gid - tileSetRef.firstGid;
-
-        const tile = tileSet.getTileByLocalId(localId);
-        if (tileSet.columns == 0) { // 单图片瓦片集的列数
-            image = zhu.assets.getImage(tile.?.id);
-            pos.y = pos.y - image.area.size.y + map.tileSize.y;
+        const image = map.getImage(gid).?;
+        const tile = map.getTile(gid);
+        if (tile) |t| {
+            pos.y = pos.y - image.size.y + map.grid.cellSize().y;
             if (tile.?.id == @intFromEnum(ObjectEnum.spike)) {
-                parseTileSpike(tile.?, pos);
+                parseTileSpike(t, pos);
             }
-        } else {
-            const area = map.tileArea(localId, tileSet.columns);
-            image = firstImage.sub(area);
         }
 
-        tileVertexes.append(zhu.assets.allocator, .{
+        tileVertexes.append(allocator.raw, .{
             .position = pos,
-            .size = image.area.size,
-            .texturePosition = image.area.toTexturePosition(),
+            .size = image.size,
+            .uvRect = image.uvRect(),
         }) catch @panic("oom, can't append tile");
 
-        if (tile) |t| parseProperties(index, t); // 解析碰撞信息
+        if (tile) |t| parseProperties(index, t.*); // 解析碰撞信息
     }
 }
 
-fn parseTileSpike(tile: tiled.Tile, pos: zhu.Vector2) void {
+fn parseTileSpike(tile: *const tiled.Tile, pos: zhu.Vector2) void {
     const object = tile.objectGroup.?.objects[0];
-    objects.append(zhu.assets.allocator, .{
+    objects.append(allocator.raw, .{
         .type = @enumFromInt(tile.id),
         .position = pos,
         .initPosition = pos,
@@ -116,11 +111,11 @@ fn parseTileSpike(tile: tiled.Tile, pos: zhu.Vector2) void {
 fn parseProperties(index: usize, tile: tiled.Tile) void {
     for (tile.properties) |property| {
         if (std.mem.eql(u8, property.name, "solid")) {
-            if (property.value.bool) tileStates[index] = .solid;
+            if (property.value.get(bool).?) tileStates[index] = .solid;
         } else if (std.mem.eql(u8, property.name, "unisolid")) {
-            if (property.value.bool) tileStates[index] = .uniSolid;
+            if (property.value.get(bool).?) tileStates[index] = .uniSolid;
         } else if (std.mem.eql(u8, property.name, "ladder")) {
-            if (property.value.bool) tileStates[index] = .ladder;
+            if (property.value.get(bool).?) tileStates[index] = .ladder;
         } else tileStates[index] = .normal;
     }
 }
@@ -130,25 +125,23 @@ fn parseObjectLayer(layer: *const tiled.Layer) void {
         if (object.gid == 0) {
             if (object.properties.len != 0) {
                 const property = object.properties[0];
+                const tag = property.value.get([]const u8).?;
                 if (std.mem.eql(u8, property.name, "tag") and
-                    std.mem.eql(u8, property.value.string, "next_level"))
+                    std.mem.eql(u8, tag, "next_level"))
                 {
-                    nextLevelArea = zhu.Rect{
-                        .min = object.position,
-                        .size = object.size,
-                    };
+                    nextLevelArea = object.rect();
                 }
             } else std.log.info("gid 0, position: {}", .{object.position});
             continue;
         }
-        const tile = map.getTileByGId(object.gid).?;
+        const tile = map.getTile(object.gid).?;
 
         var obj: ?tiled.Object = null;
         if (tile.objectGroup) |group| obj = group.objects[0];
-        objects.append(zhu.assets.allocator, .{
+        objects.append(allocator.raw, .{
             .type = @enumFromInt(tile.id),
-            .position = object.position.addY(-object.size.y),
-            .initPosition = object.position.addY(-object.size.y),
+            .position = object.topLeft(),
+            .initPosition = object.topLeft(),
             .size = object.size,
             .object = obj,
         }) catch @panic("oom, can't append tile");
@@ -161,24 +154,24 @@ pub fn isTouchLadder(pos: Vector2, size: Vector2) bool {
     const bottomLeft = pos.addY(size.y);
     const bottomRight = pos.add(size);
 
-    return tileStates[map.worldToTileIndex(topLeft)] == .ladder or
-        tileStates[map.worldToTileIndex(topRight)] == .ladder or
-        tileStates[map.worldToTileIndex(bottomLeft)] == .ladder or
-        tileStates[map.worldToTileIndex(bottomRight)] == .ladder;
+    return tileStates[tileIndex(topLeft)] == .ladder or
+        tileStates[tileIndex(topRight)] == .ladder or
+        tileStates[tileIndex(bottomLeft)] == .ladder or
+        tileStates[tileIndex(bottomRight)] == .ladder;
 }
 
 pub fn isTopLadder(pos: Vector2, size: Vector2) bool {
     const centerX = pos.x + size.x / 2;
     const point = zhu.Vector2.xy(centerX, pos.y + size.y);
-    return tileStates[map.worldToTileIndex(point)] == .ladder;
+    return tileStates[tileIndex(point)] == .ladder;
 }
 
 pub fn canClimb(pos: Vector2, size: Vector2) bool {
     const bottomLeft = pos.addY(size.y);
     const bottomRight = pos.add(size);
 
-    return tileStates[map.worldToTileIndex(bottomLeft)] == .ladder and
-        tileStates[map.worldToTileIndex(bottomRight)] == .ladder;
+    return tileStates[tileIndex(bottomLeft)] == .ladder and
+        tileStates[tileIndex(bottomRight)] == .ladder;
 }
 
 pub fn clamp(old: Vector2, new: Vector2, size: Vector2) Vector2 {
@@ -197,15 +190,15 @@ const epsilon = zhu.Vector2.one.scale(-zhu.math.epsilon);
 fn clampLeft(new: Vector2, size: Vector2) Vector2 {
     const sz = size.add(epsilon);
 
-    var tileIndex = map.worldToTileIndex(new);
-    if (tileStates[tileIndex] == .solid) { // 左上角碰撞
-        return map.tileIndexToWorld(tileIndex + 1);
+    var index = tileIndex(new);
+    if (tileStates[index] == .solid) { // 左上角碰撞
+        return tileWorld(index + 1);
     }
 
     const bottomLeft = new.addY(sz.y);
-    tileIndex = map.worldToTileIndex(bottomLeft);
-    if (tileStates[tileIndex] == .solid) { // 左下角碰撞
-        return map.tileIndexToWorld(tileIndex + 1);
+    index = tileIndex(bottomLeft);
+    if (tileStates[index] == .solid) { // 左下角碰撞
+        return tileWorld(index + 1);
     }
     return new;
 }
@@ -213,16 +206,16 @@ fn clampLeft(new: Vector2, size: Vector2) Vector2 {
 fn clampRight(new: Vector2, size: Vector2) Vector2 {
     const sz = size.add(epsilon);
 
-    var tileIndex = map.worldToTileIndex(new.addX(sz.x));
-    const offsetX = map.tileSize.x - size.x;
-    if (tileStates[tileIndex] == .solid) { // 右上角碰撞
-        return map.tileIndexToWorld(tileIndex - 1).addX(offsetX);
+    var index = tileIndex(new.addX(sz.x));
+    const offsetX = map.grid.cellSize().x - size.x;
+    if (tileStates[index] == .solid) { // 右上角碰撞
+        return tileWorld(index - 1).addX(offsetX);
     }
 
     const bottomRight = new.add(sz);
-    tileIndex = map.worldToTileIndex(bottomRight);
-    if (tileStates[tileIndex] == .solid) { // 右下角碰撞
-        return map.tileIndexToWorld(tileIndex - 1).addX(offsetX);
+    index = tileIndex(bottomRight);
+    if (tileStates[index] == .solid) { // 右下角碰撞
+        return tileWorld(index - 1).addX(offsetX);
     }
     return new;
 }
@@ -230,13 +223,15 @@ fn clampRight(new: Vector2, size: Vector2) Vector2 {
 fn clampUp(new: Vector2, size: Vector2) Vector2 {
     const sz = size.add(epsilon);
 
-    var tileIndex = map.worldToTileIndex(new);
-    if (tileStates[tileIndex] == .solid) { // 左上角碰撞
-        return map.tileIndexToWorld(tileIndex + map.width);
+    const width: usize = @intCast(map.grid.width);
+
+    var index = tileIndex(new);
+    if (tileStates[index] == .solid) { // 左上角碰撞
+        return tileWorld(index + width);
     }
-    tileIndex = map.worldToTileIndex(new.addX(sz.x));
-    if (tileStates[tileIndex] == .solid) { // 右上角碰撞
-        return map.tileIndexToWorld(tileIndex + map.width);
+    index = tileIndex(new.addX(sz.x));
+    if (tileStates[index] == .solid) { // 右上角碰撞
+        return tileWorld(index + width);
     }
     return new;
 }
@@ -244,20 +239,29 @@ fn clampUp(new: Vector2, size: Vector2) Vector2 {
 fn clampDown(new: Vector2, size: Vector2) Vector2 {
     const sz = size.add(epsilon);
 
-    var tileIndex = map.worldToTileIndex(new.addY(sz.y)); // 左下角
-    const offset = map.tileSize.y - size.y;
-    var tileEnum = tileStates[tileIndex];
+    const width: usize = @intCast(map.grid.width);
+    var index = tileIndex(new.addY(sz.y)); // 左下角
+    const offset = map.grid.cellSize().y - size.y;
+    var tileEnum = tileStates[index];
     if (tileEnum == .solid or tileEnum == .uniSolid) {
-        return map.tileIndexToWorld(tileIndex - map.width).addY(offset);
+        return tileWorld(index - width).addY(offset);
     }
 
-    tileIndex = map.worldToTileIndex(new.add(sz)); // 右下角
-    tileEnum = tileStates[tileIndex];
+    index = tileIndex(new.add(sz)); // 右下角
+    tileEnum = tileStates[index];
     if (tileEnum == .solid or tileEnum == .uniSolid) {
-        return map.tileIndexToWorld(tileIndex - map.width).addY(offset);
+        return tileWorld(index - width).addY(offset);
     }
 
     return new;
+}
+
+fn tileIndex(point: Vector2) usize {
+    return map.grid.worldToIndex(point).?;
+}
+
+fn tileWorld(index: usize) Vector2 {
+    return map.grid.indexToWorld(index);
 }
 
 pub fn draw() void {
@@ -265,26 +269,28 @@ pub fn draw() void {
         if (layer.type == .image) drawImageLayer(layer);
     }
 
-    batch.vertexBuffer.appendSliceAssumeCapacity(tileVertexes.items);
+    batch.drawVertices(tileVertexes.items, null);
 }
 
 fn drawImageLayer(layer: *const tiled.Layer) void {
-    batch.camera.modeEnum = .window;
-    defer batch.camera.modeEnum = .world;
+    zhu.camera.push(.window);
+    defer zhu.camera.pop();
 
     if (layer.repeatY) {
-        const posY = batch.camera.position.y * layer.parallaxY;
+        const image = zhu.assets.getImage(layer.image).?;
+        const posY = zhu.camera.main.position.y * layer.parallaxY;
         var y = -@mod(posY, layer.height);
         while (y < window.size.y) : (y += layer.height) {
-            batch.draw(layer.image, layer.offset.addXY(0, y));
+            batch.drawImage(image, layer.offset.addXY(0, y), .{});
         }
     }
 
     if (layer.repeatX) {
-        const posX = batch.camera.position.x * layer.parallaxX;
+        const image = zhu.assets.getImage(layer.image).?;
+        const posX = zhu.camera.main.position.x * layer.parallaxX;
         var x = -@mod(posX, layer.width);
         while (x < window.size.x) : (x += layer.width) {
-            batch.draw(layer.image, layer.offset.addXY(x, 0));
+            batch.drawImage(image, layer.offset.addXY(x, 0), .{});
         }
     }
 }
