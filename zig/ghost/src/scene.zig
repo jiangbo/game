@@ -11,28 +11,32 @@ const world = @import("world.zig");
 var isHelp = false;
 var isDebug = false;
 var vertexBuffer: []batch.Vertex = undefined;
+var commandBuffer: [64]batch.Command = undefined;
 
 const atlas: zhu.Atlas = @import("zon/atlas.zon");
 
 const sceneType = enum { title, world };
 var currentScene: sceneType = .title;
 
-pub fn init() void {
-    window.initText(@import("zon/font.zon"), 32);
+pub fn init(allocator: zhu.Allocator) void {
+    zhu.text.init(@import("zon/font.zon"));
+    zhu.text.changeFontSize(32);
 
-    vertexBuffer = window.alloc(batch.Vertex, 5000);
-    zhu.graphics.frameStats(true);
-    batch.init(window.logicSize, vertexBuffer);
-    batch.whiteImage = zhu.graphics.imageId("white.png");
+    vertexBuffer = allocator.alloc(batch.Vertex, 5000);
+    batch.init(vertexBuffer, &commandBuffer);
     zhu.assets.loadAtlas(atlas);
+    batch.circleImage = zhu.getImage("circle.png").?;
+    const size = batch.circleImage.size;
+    const rect = zhu.Rect.init(.zero, size).centerScale(0.25);
+    batch.whiteImage = batch.circleImage.sub(rect);
 
-    world.init();
+    world.init(allocator);
     title.init();
 }
 
-pub fn deinit() void {
+pub fn deinit(allocator: zhu.Allocator) void {
     world.deinit();
-    window.free(vertexBuffer);
+    allocator.free(vertexBuffer);
 }
 
 pub fn changeScene(newScene: sceneType) void {
@@ -44,10 +48,10 @@ pub fn changeScene(newScene: sceneType) void {
 }
 
 pub fn update(delta: f32) void {
-    if (window.isKeyRelease(.H)) isHelp = !isHelp;
-    if (window.isKeyRelease(.X)) isDebug = !isDebug;
+    if (zhu.key.released(.H)) isHelp = !isHelp;
+    if (zhu.key.released(.X)) isDebug = !isDebug;
 
-    if (window.isKeyDown(.LEFT_ALT) and window.isKeyRelease(.ENTER)) {
+    if (zhu.key.held(.LEFT_ALT) and zhu.key.released(.ENTER)) {
         return window.toggleFullScreen();
     }
 
@@ -58,9 +62,9 @@ pub fn update(delta: f32) void {
 }
 
 pub fn draw() void {
-    camera.beginDraw(.{});
-    defer camera.endDraw();
-    window.keepAspectRatio();
+    zhu.batch.beginDraw();
+    zhu.batch.useTarget(.black, .{});
+    defer zhu.batch.endDraw();
 
     switch (currentScene) {
         .title => title.draw(),
@@ -77,48 +81,10 @@ fn drawHelpInfo() void {
         \\帮助：H  按一次打开，再按一次关闭
     ;
     debutTextCount = zhu.text.computeTextCount(text);
-    zhu.text.drawColor(text, .xy(10, 10), .green);
+    zhu.text.draw(text, .xy(10, 10), .{ .color = .green });
 }
 
-var debutTextCount: u32 = 0;
+var debutTextCount: usize = 0;
 fn drawDebugInfo() void {
-    var buffer: [1024]u8 = undefined;
-    const format =
-        \\后端：{s}
-        \\帧率：{}
-        \\平滑：{d:.2}
-        \\帧时：{d:.2}
-        \\用时：{d:.2}
-        \\显存：{}
-        \\常量：{}
-        \\绘制：{}
-        \\图片：{}
-        \\文字：{}
-        \\内存：{}
-        \\鼠标：{d:.2}，{d:.2}
-        \\相机：{d:.2}，{d:.2}
-    ;
-
-    const stats = zhu.graphics.queryFrameStats();
-    const text = zhu.text.format(&buffer, format, .{
-        @tagName(zhu.graphics.queryBackend()),
-        window.frameRate,
-        window.currentSmoothTime * 1000,
-        window.frameDeltaPerSecond,
-        window.usedDeltaPerSecond,
-        stats.size_append_buffer + stats.size_update_buffer,
-        stats.size_apply_uniforms,
-        stats.num_draw,
-        camera.imageDrawCount(),
-        // Debug 信息本身的次数也应该统计进去
-        zhu.graphics.textCount + debutTextCount,
-        window.countingAllocator.used,
-        window.mousePosition.x,
-        window.mousePosition.y,
-        camera.position.x,
-        camera.position.y,
-    });
-
-    debutTextCount = zhu.text.computeTextCount(text);
-    zhu.text.drawColor(text, .xy(10, 10), .green);
+    zhu.debug.draw(&.{});
 }

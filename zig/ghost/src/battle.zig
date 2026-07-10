@@ -1,7 +1,7 @@
 const std = @import("std");
 const zhu = @import("zhu");
 
-const camera = zhu.camera;
+const batch = zhu.batch;
 
 const scene = @import("scene.zig");
 const world = @import("world.zig");
@@ -15,23 +15,24 @@ pub const Stats = struct {
     attack: u32 = 40, // 攻击力
 };
 
-const circle = zhu.graphics.imageId("circle.png"); // 显示碰撞范围
 const spellFrames = zhu.graphics.framesX(13, .xy(64, 64), 0.1);
 const spellDamageIndex = 6; // 动画第 6 帧造成伤害，视觉效果好一点
-const spellSize = spellFrames[0].area.size.scale(3);
+const spellSize = zhu.Vector2.xy(64, 64).scale(3);
 
-var spellTimer: zhu.window.Timer = .init(2);
-var spellAnimations: [4]zhu.graphics.FrameAnimation = undefined;
+var spellTimer: zhu.Timer = .init(2);
+var spellAnimations: [4]zhu.Animation = undefined;
 var spellPositions: [4]zhu.Vector2 = undefined;
 var mana: u32 = 100;
-var manaTimer: zhu.window.Timer = .init(1); // 每秒回复一次魔法值
-
+var manaTimer: zhu.Timer = .init(1); // 每秒回复一次魔法值
 pub var highScore: u32 = 0;
 var score: u32 = 0;
 
 pub fn init() void {
-    const image = zhu.graphics.getImage("effect/Thunderstrike w blur.png");
-    for (&spellAnimations) |*a| a.* = .initFinished(image, &spellFrames);
+    const image = zhu.getImage("effect/Thunderstrike w blur.png").?;
+    for (&spellAnimations) |*a| {
+        a.* = .initFinished(image, .xy(64, 64), &spellFrames);
+        a.loop = false;
+    }
     spellTimer.stop(); // 一开始就可以直接使用魔法
 }
 
@@ -57,26 +58,26 @@ pub fn update(delta: f32) void {
     if (world.paused) return;
 
     spellTimer.update(delta);
-    if (manaTimer.isFinishedLoopUpdate(delta)) {
+    if (manaTimer.updateLooped(delta)) {
         mana += 10;
         if (mana > 100) mana = 100;
     }
 
     // 角色使用魔法
-    const canCastSpell = zhu.window.isMouseRelease(.LEFT);
+    const canCastSpell = zhu.mouse.released(.LEFT);
     if (canCastSpell and player.stats.health > 0) {
-        playerCastSpell(camera.toWorld(zhu.window.mousePosition));
+        playerCastSpell(zhu.camera.toWorld(zhu.window.mouse));
     }
 
     for (&spellPositions, &spellAnimations) |pos, *animation| {
         if (animation.isFinished()) continue;
 
         // 如果动画状态未改变，或者不是伤害帧则跳过
-        const changed = animation.isNextOnceUpdate(delta);
-        if (!changed or animation.index != spellDamageIndex) continue;
+        const step = animation.update(delta) orelse continue;
+        if (step != .next or animation.index != spellDamageIndex) continue;
 
         for (enemy.enemies.items) |*e| {
-            const state = e.animation.getEnumState(enemy.State);
+            const state = e.animation.getEnumExtend(enemy.State);
             if (state == .dead) continue; // 死亡状态不检测碰撞
 
             const len = (spellSize.x + enemy.size.x) * 0.5;
@@ -107,7 +108,7 @@ fn playerCastSpell(position: zhu.Vector2) void {
     if (mana < 30 or spellTimer.isRunning()) return;
 
     // 播放攻击音效
-    zhu.audio.playSound("assets/sound/big-thunder.ogg");
+    zhu.audio.playSound("sound/big-thunder.ogg");
     for (&spellPositions, &spellAnimations) |*pos, *animation| {
         if (animation.isFinished()) {
             pos.* = position;
@@ -123,8 +124,8 @@ pub fn draw() void {
     for (&spellPositions, &spellAnimations) |pos, animation| {
         if (animation.isFinished()) continue;
 
-        const image = animation.currentImage();
-        camera.drawImage(image, pos, .{
+        const image = animation.subImage();
+        batch.drawImage(image, pos, .{
             .anchor = .center,
             .size = spellSize,
         });
@@ -138,40 +139,40 @@ pub fn drawUI() void {
 
     // 生命值
     var pos: zhu.Vector2 = .xy(30, 30);
-    var option: camera.Option = .{ .anchor = .xy(0, 0.5) };
+    var option: batch.Option = .{ .anchor = .xy(0, 0.5) };
 
     const stats = player.stats;
     option.size = .xy(198, 21);
-    camera.drawOption(imageId("UI/bar_bg.png"), pos.addX(30), option);
+    batch.drawImage(zhu.getImage("UI/bar_bg.png").?, pos.addX(30), option);
     var percent = zhu.math.percentInt(stats.health, stats.maxHealth);
     option.size.?.x = option.size.?.x * percent;
-    camera.drawOption(imageId("UI/bar_red.png"), pos.addX(30), option);
+    batch.drawImage(zhu.getImage("UI/bar_red.png").?, pos.addX(30), option);
     option.size = .xy(36, 39);
-    camera.drawOption(imageId("UI/Red Potion.png"), pos, option);
+    batch.drawImage(zhu.getImage("UI/Red Potion.png").?, pos, option);
 
     // 法力值
     pos = .xy(300, 30);
     option.size = .xy(198, 21);
-    camera.drawOption(imageId("UI/bar_bg.png"), pos.addX(30), option);
+    batch.drawImage(zhu.getImage("UI/bar_bg.png").?, pos.addX(30), option);
     percent = zhu.math.percentInt(mana, 100);
     option.size.?.x = option.size.?.x * percent;
-    camera.drawOption(imageId("UI/bar_blue.png"), pos.addX(30), option);
+    batch.drawImage(zhu.getImage("UI/bar_blue.png").?, pos.addX(30), option);
     option.size = .xy(36, 39);
-    camera.drawOption(imageId("UI/Blue Potion.png"), pos, option);
+    batch.drawImage(zhu.getImage("UI/Blue Potion.png").?, pos, option);
 
     // 冷却时间
-    const image = zhu.graphics.getImage("UI/Electric-Icon.png");
-    var size = image.area.size.scale(0.14);
-    pos = .xy(zhu.window.logicSize.x - 300, 30 - size.y / 2);
-    camera.drawImage(image, pos, .{ .size = size });
+    const image = zhu.getImage("UI/Electric-Icon.png").?;
+    var size = image.size.scale(0.14);
+    pos = .xy(zhu.window.size.x - 300, 30 - size.y / 2);
+    batch.drawImage(image, pos, .{ .size = size });
 
     size.y = size.y * (1 - spellTimer.progress());
-    camera.drawRect(.init(pos, size), .{ .color = .gray(0, 100) });
+    batch.drawRect(.init(pos, size), .{ .color = .gray(0, 100) });
 
     // 得分
-    pos = .xy(zhu.window.logicSize.x - 210, 6);
-    camera.drawOption(imageId("UI/Textfield_01.png"), pos, .{
+    pos = .xy(zhu.window.size.x - 210, 6);
+    batch.drawImage(zhu.getImage("UI/Textfield_01.png").?, pos, .{
         .size = .xy(200, 48),
     });
-    zhu.text.drawFmt("Score: {}", pos.addXY(10, 7), .{score});
+    zhu.text.drawFmt("Score: {}", .{score}, pos.addXY(10, 7), .{});
 }

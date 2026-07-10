@@ -1,14 +1,13 @@
 const std = @import("std");
-const builtin = @import("builtin");
 const zhu = @import("zhu");
 
 const scene = @import("scene.zig");
 
 var soundBuffer: [20]zhu.audio.Sound = undefined;
 
-pub fn init() void {
+pub fn init(allocator: zhu.Allocator) void {
     zhu.audio.init(44100 / 2, &soundBuffer);
-    scene.init();
+    scene.init(allocator);
 }
 
 pub fn frame(delta: f32) void {
@@ -16,27 +15,16 @@ pub fn frame(delta: f32) void {
     scene.draw();
 }
 
-pub fn deinit() void {
-    scene.deinit();
+pub fn deinit(allocator: zhu.Allocator) void {
+    scene.deinit(allocator);
     zhu.audio.deinit();
 }
 
-pub fn main() void {
-    var allocator: std.mem.Allocator = undefined;
-    var debugAllocator: std.heap.DebugAllocator(.{}) = undefined;
-    if (builtin.mode == .Debug) {
-        debugAllocator = std.heap.DebugAllocator(.{}).init;
-        allocator = debugAllocator.allocator();
-    } else {
-        allocator = std.heap.c_allocator;
-    }
-
-    defer if (builtin.mode == .Debug) {
-        _ = debugAllocator.deinit();
-    };
-
-    zhu.window.run(allocator, .{
+pub fn main(initInfo: std.process.Init) void {
+    zhu.window.run(initInfo.io, initInfo.gpa, .{
         .title = "幽灵逃生",
+        .size = .xy(1280, 720),
         .logicSize = .{ .x = 1280, .y = 720 },
+        .scaleEnum = .integer,
     });
 }
