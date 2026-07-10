@@ -41,7 +41,9 @@ pub fn update(delta: f32) void {
     mid.update(delta, 60);
 
     if (showHelp) {
-        if (zhu.key.changed or zhu.mouse.changed) showHelp = false;
+        if (zhu.key.pressed(.ESCAPE) or zhu.mouse.pressed(.LEFT)) {
+            showHelp = false;
+        }
         return;
     }
 
