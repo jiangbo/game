@@ -20,19 +20,21 @@ pub fn reset() void {
 }
 
 pub fn update(world: *World) void {
-    const inventory = world.getPtr(world.entity, Inventory).?;
-    const notice = world.getPtr(world.entity, Notice).?;
+    const inventory = world.getResourcePtr(Inventory).?;
+    const notice = world.getResourcePtr(Notice).?;
 
-    if (bag.update(inventory)) return;
+    const bagCaptured = bag.update(inventory);
+    if (bag.drag != null) return;
 
-    if (updateUseItem(inventory, notice)) return;
+    if (updateUseItem(inventory, notice, bagCaptured)) return;
 
-    bar.update(inventory);
-    drag.update(inventory);
+    if (!bagCaptured) bar.update(inventory);
+    const canDrag = !bagCaptured or bag.hover(inventory.activePage) != null;
+    drag.update(inventory, canDrag);
 }
 
 pub fn draw(world: *World) void {
-    const inventory = world.getPtr(world.entity, Inventory).?;
+    const inventory = world.getResourcePtr(Inventory).?;
 
     bag.draw(inventory, drag.hiddenBag());
     bar.draw(inventory, drag.hiddenBar());
@@ -41,14 +43,18 @@ pub fn draw(world: *World) void {
     item.drawTooltip(itemType);
 }
 
-fn updateUseItem(inventory: *Inventory, notice: *Notice) bool {
+fn updateUseItem(inventory: *Inventory, notice: *Notice, bagCaptured: bool) bool {
     if (drag.active() or bag.drag != null) return false;
-    if (!input.mousePressed(.RIGHT)) return false;
+    if (!zhu.key.pressed(.MOUSE_RIGHT)) return false;
 
-    const index = if (bar.hover()) |barIndex|
+    const index = if (bag.hover(inventory.activePage)) |bagIndex|
+        bagIndex
+    else if (bagCaptured)
+        return false
+    else if (bar.hover()) |barIndex|
         inventory.hotbar[barIndex] orelse return false
     else
-        bag.hover(inventory.activePage) orelse return false;
+        return false;
 
     switch (inventory.useAt(index)) {
         .none => {},

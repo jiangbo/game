@@ -144,7 +144,7 @@ pub fn drawUI() void {
     const stats = player.stats;
     option.size = .xy(198, 21);
     batch.drawImage(zhu.getImage("UI/bar_bg.png").?, pos.addX(30), option);
-    var percent = zhu.math.percentInt(stats.health, stats.maxHealth);
+    var percent = zhu.percentInt(stats.health, stats.maxHealth);
     option.size.?.x = option.size.?.x * percent;
     batch.drawImage(zhu.getImage("UI/bar_red.png").?, pos.addX(30), option);
     option.size = .xy(36, 39);
@@ -154,7 +154,7 @@ pub fn drawUI() void {
     pos = .xy(300, 30);
     option.size = .xy(198, 21);
     batch.drawImage(zhu.getImage("UI/bar_bg.png").?, pos.addX(30), option);
-    percent = zhu.math.percentInt(mana, 100);
+    percent = zhu.percentInt(mana, 100);
     option.size.?.x = option.size.?.x * percent;
     batch.drawImage(zhu.getImage("UI/bar_blue.png").?, pos.addX(30), option);
     option.size = .xy(36, 39);

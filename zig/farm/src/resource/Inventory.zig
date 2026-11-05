@@ -6,7 +6,7 @@ const factory = @import("../factory.zig");
 const storage = @import("../storage.zig");
 
 const ItemEnum = component.item.ItemEnum;
-const Store = zhu.widget.StackStore(ItemEnum, 40, stackLimit);
+const Store = zhu.extend.bag.Store(ItemEnum, 40, stackLimit);
 const Self = @This();
 
 pub const Stack = Store.Stack;

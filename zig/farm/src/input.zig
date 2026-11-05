@@ -25,7 +25,6 @@ pub const Command = enum {
 const Entry = struct { type: Command, value: []const zhu.key.Code };
 const zon: []const Entry = @import("zon/input.zon");
 const keys = zhu.enums.fromEntries(Entry, zon);
-const Mouse = zhu.mouse.Button;
 
 pub var mouseCaptured: bool = false;
 
@@ -41,26 +40,11 @@ pub fn released(command: Command) bool {
     return zhu.key.anyReleased(keys.get(command));
 }
 
-pub fn mouseHeld(button: Mouse) bool {
-    if (mouseCaptured) return false;
-    return zhu.mouse.held(button);
-}
-
-pub fn mousePressed(button: Mouse) bool {
-    if (mouseCaptured) return false;
-    return zhu.mouse.pressed(button);
-}
-
-pub fn mouseReleased(button: Mouse) bool {
-    if (mouseCaptured) return false;
-    return zhu.mouse.released(button);
-}
-
 pub fn hotbarPressed() ?u8 {
-    const first: usize = @intFromEnum(Command.hotbar1);
-    const last: usize = @intFromEnum(Command.hotbar10);
+    const first: usize = @backingInt(Command.hotbar1);
+    const last: usize = @backingInt(Command.hotbar10);
     for (first..last + 1) |value| {
-        const command: Command = @enumFromInt(value);
+        const command: Command = @fromBackingInt(@intCast(value));
         if (pressed(command)) return @intCast(value - first);
     }
     return null;

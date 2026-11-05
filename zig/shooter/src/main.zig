@@ -20,8 +20,7 @@ pub fn event(evt: *const zhu.window.Event) void {
 pub fn frame(delta: f32) void {
     scene.update(delta);
 
-    zhu.batch.beginDraw();
-    zhu.batch.useTarget(.black, .{});
+    zhu.batch.beginDraw(.black, .{});
     scene.draw();
     zhu.batch.endDraw();
 }

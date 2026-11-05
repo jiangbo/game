@@ -1,4 +1,5 @@
 .{
+    .name = "farm",
     .size = 16,
     .lineHeight = 17.44,
     .imageSize = .{ .x = 1024, .y = 1024 },

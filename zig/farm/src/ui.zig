@@ -129,9 +129,9 @@ pub fn draw(world: *ecs.World) void {
     }
 
     if (popupMessage) |current| {
-        var color = zhu.Color.rgb(0.25, 1.0, 0.25);
-        if (current.fail) color = .rgb(1.0, 0.25, 0.25);
-        zhu.text.draw(current.text, .xy(zhu.window.size.x * 0.5, 32), .{
+        var color = zhu.Color.rgb(64, 255, 64);
+        if (current.fail) color = .rgb(255, 64, 64);
+        zhu.text.draw(current.text, .xy(zhu.camera.size.x * 0.5, 32), .{
             .anchor = .center,
             .color = color,
         });

@@ -70,8 +70,8 @@ var config: Config = .{};
 pub var slots: [10]Slot = @splat(.empty);
 
 pub fn init(world: *World) Config {
-    config = load(Config, "config.zon", .{});
-    slots = load(@TypeOf(slots), "saves/slots.zon", @splat(.empty));
+    config = load(Config, "config.json", .{});
+    slots = load(@TypeOf(slots), "saves/slots.json", @splat(.empty));
     sync(world, config);
     return config;
 }
@@ -80,7 +80,7 @@ pub fn update(world: *World, cfg: Config) void {
     if (std.meta.eql(config, cfg)) return;
 
     sync(world, cfg);
-    zhu.window.saveZon("config.zon", cfg) catch |err| {
+    zhu.extend.storage.writeJson("config.json", cfg) catch |err| {
         std.log.err("save config failed: {}", .{err});
         return;
     };
@@ -88,35 +88,35 @@ pub fn update(world: *World, cfg: Config) void {
 }
 
 fn sync(world: *World, cfg: Config) void {
-    world.getPtr(world.entity, Speed).?.value = cfg.speed;
+    world.getResourcePtr(Speed).?.value = cfg.speed;
     zhu.audio.musicVolume.store(cfg.music, .release);
     zhu.audio.soundVolume.store(cfg.sound, .release);
 }
 
-pub fn read(slot: u8) !zhu.window.Zon(Record) {
+pub fn read(slot: u8) !std.json.Parsed(Record) {
     var buffer: [32]u8 = undefined;
-    const path = zhu.formatZ(&buffer, "saves/slot{d}.zon", .{slot});
-    const record = try zhu.window.readZon(Record, path, .{});
+    const path = zhu.formatZ(&buffer, "saves/slot{d}.json", .{slot});
+    const record = try zhu.extend.storage.readJson(Record, path);
     std.log.info("game loaded: {s}", .{path});
     return record;
 }
 
 pub fn write(slot: u8, record: Record) !void {
     var buffer: [32]u8 = undefined;
-    const path = zhu.formatZ(&buffer, "saves/slot{d}.zon", .{slot});
+    const path = zhu.formatZ(&buffer, "saves/slot{d}.json", .{slot});
 
-    try zhu.window.saveZon(path, record);
+    try zhu.extend.storage.writeJson(path, record);
 
     slots[slot] = .{ .valid = .{
         .day = record.clock.day,
         .timestamp = record.timestamp,
     } };
-    try zhu.window.saveZon("saves/slots.zon", slots);
+    try zhu.extend.storage.writeJson("saves/slots.json", slots);
     std.log.info("game saved: {s}", .{path});
 }
 
 fn load(T: type, path: [:0]const u8, default: T) T {
-    var loaded = zhu.window.readZon(T, path, .{}) catch |err| switch (err) {
+    var loaded = zhu.extend.storage.readJson(T, path) catch |err| switch (err) {
         error.FileNotFound => return default,
         else => std.debug.panic("load {s} failed: {}", .{ path, err }),
     };

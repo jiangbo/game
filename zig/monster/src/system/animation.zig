@@ -10,7 +10,7 @@ pub fn update(reg: *ecs.World, delta: f32) void {
 
         // 处理可能的动画播放请求
         if (reg.get(entity, com.animation.Play)) |play| {
-            animation.play(play.index);
+            animation.playIndex(play.index);
             animation.source.loop = play.loop;
         }
 

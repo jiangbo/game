@@ -34,9 +34,9 @@ pub fn init() void {
 }
 
 pub fn draw(world: *World) void {
-    const clock = world.getPtr(world.entity, Clock).?;
+    const clock = world.getResourcePtr(Clock).?;
 
-    zhu.camera.push(.windowScale(.xy(10, 10), .square(uiScale)));
+    zhu.camera.push(.windowScale(.xy(10, 10), .all(uiScale)));
     defer zhu.camera.pop();
 
     zhu.batch.drawNine(panelImage, panelImage.rectAt(.xy(20, 0)));
@@ -55,7 +55,7 @@ pub fn draw(world: *World) void {
 
     var buffer: [16]u8 = undefined;
     var option: zhu.text.Option = .{
-        .scale = .square(1.0 / uiScale),
+        .scale = .all(1.0 / uiScale),
         .anchor = .center,
     };
     const dayText = zhu.format(&buffer, "Day {d}", .{clock.day});

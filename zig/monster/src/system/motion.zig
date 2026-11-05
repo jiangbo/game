@@ -18,7 +18,7 @@ fn followPath(registry: *ecs.World) void {
             if (registry.entities.get(blockBy.v) != null) continue;
             registry.remove(entity, com.motion.BlockBy);
             registry.add(entity, com.animation.Play{
-                .index = @backingInt(com.StateEnum.walk),
+                .index = .walk,
                 .loop = true,
             });
         }

@@ -7,15 +7,14 @@ const component = @import("../component.zig");
 const MenuEvent = enum(u8) { minus, plus, ok, cancel };
 
 pub var hours: u8 = 8;
-var menu: zhu.widget.Menu = @import("rest.zon");
+var menu: zhu.widget.MenuT(MenuEvent) = @import("rest.zon");
 
 pub fn init() void {
     menu.centerInWindow();
 }
 
 pub fn update(world: *ecs.World) bool {
-    const event = menu.update(.{}) orelse return false;
-    switch (@as(MenuEvent, @enumFromInt(event))) {
+    switch (menu.update(.{}) orelse return false) {
         .minus => hours -= 1,
         .plus => hours += 1,
         .ok => {

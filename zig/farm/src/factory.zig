@@ -68,17 +68,17 @@ pub const CropConfig = struct { stages: [4]CropStage };
 
 pub const Config = struct {
     player: Actor,
-    items: [std.meta.fields(item.ItemEnum).len]Item,
-    animals: [std.meta.fields(actor.AnimalEnum).len]Character,
+    items: [@typeInfo(item.ItemEnum).@"enum".field_names.len]Item,
+    animals: [@typeInfo(actor.AnimalEnum).@"enum".field_names.len]Character,
     friend: Character,
     // crops 按 farm.CropEnum 枚举下标索引，每种作物对应一组阶段配置
-    crops: [std.meta.fields(farm.CropEnum).len]CropConfig,
+    crops: [@typeInfo(farm.CropEnum).@"enum".field_names.len]CropConfig,
 };
 
 pub const zon: Config = @import("zon/factory.zon");
 
 pub fn itemConfig(itemType: item.ItemEnum) Item {
-    return zon.items[@intFromEnum(itemType)];
+    return zon.items[@backingInt(itemType)];
 }
 
 // 从 CropEnum 得到对应的种子 ItemEnum
@@ -98,7 +98,7 @@ pub fn harvestItem(kind: farm.CropEnum) item.ItemEnum {
 }
 
 pub fn cropStage(kind: farm.CropEnum, stage: farm.GrowthEnum) CropStage {
-    return zon.crops[@intFromEnum(kind)].stages[@intFromEnum(stage)];
+    return zon.crops[@backingInt(kind)].stages[@backingInt(stage)];
 }
 
 pub fn resolveImage(sprite: Sprite) zhu.graphics.Image {
@@ -106,7 +106,7 @@ pub fn resolveImage(sprite: Sprite) zhu.graphics.Image {
 }
 
 pub fn spawnPlayer(world: *World, spawn: zhu.Vector2) void {
-    if (world.getIdentity(actor.Player)) |oldPlayer| {
+    if (world.getIdentityEntity(actor.Player)) |oldPlayer| {
         world.destroyEntity(oldPlayer);
         world.removeIdentity(actor.Player);
     }
@@ -122,9 +122,11 @@ pub fn spawnPlayer(world: *World, spawn: zhu.Vector2) void {
     world.add(player, motion.Blocking{});
     world.add(player, actor.Actor{ .rows = config.rows });
 
-    const sources = comptime animationSources(config.animations);
-    const size = config.sprite.rect.size;
-    const animation = zhu.Animation.initSource(&sources, size);
+    const sources = comptime animationSources(
+        config.animations,
+        config.sprite.rect.size,
+    );
+    const animation = zhu.Animation.initSource(&sources);
 
     world.add(player, render.Sprite{
         .image = animation.subImage(),
@@ -139,13 +141,16 @@ pub fn spawnPlayer(world: *World, spawn: zhu.Vector2) void {
 }
 
 pub fn spawnAnimal(world: *World, kind: actor.Animal) Entity {
-    const config = zon.animals[@intFromEnum(kind)];
+    const config = zon.animals[@backingInt(kind)];
 
     // inline else 让每种动物的动画源在编译期按枚举值分别计算
     const sources = blk: switch (kind) {
         inline else => |k| {
-            const source = zon.animals[@intFromEnum(k)].animations;
-            break :blk &comptime animationSources(source);
+            const source = zon.animals[@backingInt(k)].animations;
+            break :blk &comptime animationSources(
+                source,
+                zon.animals[@backingInt(k)].sprite.rect.size,
+            );
         },
     };
 
@@ -162,7 +167,10 @@ pub fn spawnAnimal(world: *World, kind: actor.Animal) Entity {
 
 pub fn spawnFriend(world: *World) Entity {
     // friend 动画源在编译期计算，配置缺失会直接编译失败。
-    const sources = comptime animationSources(zon.friend.animations);
+    const sources = comptime animationSources(
+        zon.friend.animations,
+        zon.friend.sprite.rect.size,
+    );
     return spawnNpc(world, zon.friend, &sources);
 }
 
@@ -174,8 +182,7 @@ fn spawnNpc(world: *World, config: Character, sources: Sources) Entity {
     });
     world.add(entity, motion.Blocking{});
     world.add(entity, actor.Actor{ .rows = config.rows });
-    const imageSize = config.sprite.rect.size;
-    const animation = zhu.Animation.initSource(sources, imageSize);
+    const animation = zhu.Animation.initSource(sources);
 
     world.add(entity, render.Sprite{
         .image = animation.subImage(),
@@ -212,7 +219,7 @@ pub fn spawnMapObject(
         image = animation.subImage();
         // anim_id 表示由玩法触发的动画，地图加载时只挂组件不自动播放。
         if (tile.hasProperty("anim_id")) {
-            animation.loop = false;
+            animation.source.loop = false;
             animation.stop();
         }
         world.add(entity, animation);
@@ -264,7 +271,7 @@ pub fn spawnMapTile(
 
     if (data.getAnimation(globalId)) |baseAnimation| {
         var animation = baseAnimation;
-        animation.loop = false;
+        animation.source.loop = false;
         animation.stop();
         image = animation.subImage();
         world.add(entity, animation);
@@ -386,7 +393,7 @@ pub fn spawnCrop(
     position: zhu.Vector2,
     kind: farm.CropEnum,
 ) Entity {
-    const stage = zon.crops[@intFromEnum(kind)].stages[0];
+    const stage = zon.crops[@backingInt(kind)].stages[0];
     const entity = world.createEntity();
     // kind 写入组件，后续 advanceCrop 依赖它查找正确的阶段贴图
     world.add(entity, farm.Crop{ .kind = kind, .next = stage.duration });
@@ -450,16 +457,17 @@ pub fn spawnPickup(world: *World, args: struct {
 
 // 动画源数组按 Action 枚举全长定长，未配置的动作留空 Source。
 // 角色只会切到已配置动画的动作，空槽不会被访问到。
-const actionCount = std.meta.fields(actor.Action).len;
+const actionCount = @typeInfo(actor.Action).@"enum".field_names.len;
 
-fn animationSources(comptime animations: []const Animation) //
+fn animationSources(comptime animations: []const Animation, size: zhu.Vector2) //
 [actionCount]zhu.Animation.Source {
     var sources: [actionCount]zhu.Animation.Source =
         std.mem.zeroes([actionCount]zhu.Animation.Source);
     for (animations) |config| {
-        sources[@intFromEnum(config.type)] = .{
+        sources[@backingInt(config.type)] = .{
             .imageId = config.imageId,
-            .clip = config.frames,
+            .frames = config.frames,
+            .size = size,
         };
     }
     return sources;
@@ -467,16 +475,13 @@ fn animationSources(comptime animations: []const Animation) //
 
 const expectEqual = std.testing.expectEqual;
 test "spawnPlayer 会创建玩家实体" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-    putMockFarmImages();
 
     var world = World.init(std.testing.allocator);
     defer world.deinit();
 
     spawnPlayer(&world, .xy(160, 96));
 
-    const player = world.getIdentity(actor.Player).?;
+    const player = world.getIdentityEntity(actor.Player).?;
     try expectEqual(160, world.get(player, component.Position).?.x);
     try expectEqual(1, world.values(motion.Velocity).len);
     try expectEqual(1, world.values(actor.Actor).len);
@@ -486,9 +491,6 @@ test "spawnPlayer 会创建玩家实体" {
 }
 
 test "spawnPlayer 重复调用只保留一个玩家" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-    putMockFarmImages();
 
     var world = World.init(std.testing.allocator);
     defer world.deinit();
@@ -496,7 +498,7 @@ test "spawnPlayer 重复调用只保留一个玩家" {
     spawnPlayer(&world, .xy(160, 96));
     spawnPlayer(&world, .xy(200, 128));
 
-    const player = world.getIdentity(actor.Player).?;
+    const player = world.getIdentityEntity(actor.Player).?;
     try expectEqual(200, world.get(player, component.Position).?.x);
     try expectEqual(1, world.values(component.Position).len);
     try expectEqual(1, world.values(motion.Velocity).len);
@@ -504,9 +506,6 @@ test "spawnPlayer 重复调用只保留一个玩家" {
 }
 
 test "spawnAnimal 会创建可漫游动物实体" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-    putMockAnimalImages();
 
     var world = World.init(std.testing.allocator);
     defer world.deinit();
@@ -527,9 +526,6 @@ test "spawnAnimal 会创建可漫游动物实体" {
 }
 
 test "spawnFriend 会创建可对话 NPC 实体" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-    putMockNpcImages();
 
     var world = World.init(std.testing.allocator);
     defer world.deinit();
@@ -544,9 +540,6 @@ test "spawnFriend 会创建可对话 NPC 实体" {
 }
 
 test "spawnCrop 会按作物类型设置 kind 和 next" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-    putMockCropImages();
 
     var world = World.init(std.testing.allocator);
     defer world.deinit();
@@ -562,7 +555,7 @@ test "spawnCrop 会按作物类型设置 kind 和 next" {
     for (cases) |case| {
         const entity = spawnCrop(&world, case.position, case.kind);
         const crop = world.get(entity, farm.Crop).?;
-        const config = zon.crops[@intFromEnum(case.kind)];
+        const config = zon.crops[@backingInt(case.kind)];
 
         try expectEqual(farm.GrowthEnum.seed, crop.stage);
         try expectEqual(case.kind, crop.kind);
@@ -573,13 +566,10 @@ test "spawnCrop 会按作物类型设置 kind 和 next" {
 }
 
 test "advanceCrop 会推进阶段并保持 kind" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-    putMockCropImages();
 
     const kinds = [_]farm.CropEnum{ .strawberry, .potato };
     for (kinds) |kind| {
-        const config = zon.crops[@intFromEnum(kind)];
+        const config = zon.crops[@backingInt(kind)];
         var crop = farm.Crop{
             .kind = kind,
             .next = config.stages[0].duration,
@@ -595,13 +585,9 @@ test "advanceCrop 会推进阶段并保持 kind" {
 }
 
 test "地图摆件按底边定位生成实体" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
 
     const imageId = 1234;
     const tileSetId = 5678;
-    const image = zhu.graphics.Image{ .size = .xy(16, 16) };
-    zhu.assets.putImage(imageId, image);
 
     const tiles = [_]tiled.Tile{
         .{
@@ -653,13 +639,9 @@ test "地图摆件按底边定位生成实体" {
 }
 
 test "地图摆件优先用碰撞底边作为排序点" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
 
     const imageId = 1234;
     const tileSetId = 5678;
-    const image = zhu.graphics.Image{ .size = .xy(20, 40) };
-    zhu.assets.putImage(imageId, image);
 
     const collisions = [_]tiled.Object{.{
         .id = 1,
@@ -717,13 +699,9 @@ test "地图摆件优先用碰撞底边作为排序点" {
 }
 
 test "带 anim_id 的地图摆件会创建停止的非循环动画" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
 
     const imageId = 1234;
     const tileSetId = 5678;
-    const image = zhu.graphics.Image{ .size = .xy(32, 16) };
-    zhu.assets.putImage(imageId, image);
 
     const frames = [_]zhu.graphics.Frame{
         .{ .offset = .xy(0, 0), .duration = 0.1 },
@@ -774,7 +752,7 @@ test "带 anim_id 的地图摆件会创建停止的非循环动画" {
     const animation = world.get(entity, actor.Animation).?;
     const sprite = world.get(entity, render.Sprite).?;
 
-    try std.testing.expect(!animation.loop);
+    try std.testing.expect(!animation.source.loop);
     try std.testing.expect(animation.isFinished());
     try expectEqual(0, sprite.image.offset.x);
     try expectEqual(0, sprite.image.offset.y);
@@ -786,37 +764,4 @@ test "工具命中目标和资源耐久来自物品配置" {
 
     try expectEqual(3, itemConfig(.stone).health.?);
     try expectEqual(5, itemConfig(.timber).health.?);
-}
-
-fn putMockFarmImages() void {
-    const image = zhu.graphics.Image{ .size = .xy(256, 256) };
-
-    for (zon.player.animations) |animation| {
-        zhu.assets.putImage(animation.imageId, image);
-    }
-}
-
-fn putMockCropImages() void {
-    const image = zhu.graphics.Image{ .size = .xy(256, 256) };
-    // 遍历所有作物种类的所有阶段
-    for (zon.crops) |cropConfig| {
-        for (cropConfig.stages) |stage| {
-            zhu.assets.putImage(stage.sprite.imageId, image);
-        }
-    }
-}
-
-fn putMockAnimalImages() void {
-    const image = zhu.graphics.Image{ .size = .xy(128, 288) };
-    for (zon.animals) |animalConfig| {
-        zhu.assets.putImage(animalConfig.sprite.imageId, image);
-    }
-}
-
-fn putMockNpcImages() void {
-    const image = zhu.graphics.Image{ .size = .xy(192, 96) };
-    zhu.assets.putImage(zon.friend.sprite.imageId, image);
-    for (zon.friend.animations) |animation| {
-        zhu.assets.putImage(animation.imageId, image);
-    }
 }

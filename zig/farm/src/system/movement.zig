@@ -36,12 +36,12 @@ pub fn update(world: *World, delta: f32) void {
 }
 
 fn followPlayer(world: *World, delta: f32) void {
-    const entity = world.getIdentity(Player) orelse return;
+    const entity = world.getIdentityEntity(Player) orelse return;
     const position = world.get(entity, Position).?;
 
     const speed: f32 = 9;
     zhu.camera.smoothFollow(position, speed * delta);
-    zhu.camera.roundPosition();
+    zhu.camera.roundPosition = true;
 }
 
 test "移动系统会按速度更新位置" {

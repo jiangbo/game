@@ -51,8 +51,7 @@ pub fn frame(delta: f32) void {
             scene.update(&registry, scaled);
             hud.update(delta);
 
-            zhu.batch.beginDraw();
-            zhu.batch.useTarget(map.backgroundColor(), .{});
+            zhu.batch.beginDraw(map.backgroundColor(), .{});
             scene.draw(&registry);
             hud.draw();
         },
@@ -60,14 +59,12 @@ pub fn frame(delta: f32) void {
             gui.update(&registry, delta);
             title.update(delta);
 
-            zhu.batch.beginDraw();
-            zhu.batch.useTarget(map.backgroundColor(), .{});
+            zhu.batch.beginDraw(map.backgroundColor(), .{});
             title.draw();
         },
         .clear, .end => {
             gui.update(&registry, delta);
-            zhu.batch.beginDraw();
-            zhu.batch.useTarget(map.backgroundColor(), .{});
+            zhu.batch.beginDraw(map.backgroundColor(), .{});
             if (battleLoaded) {
                 scene.draw(&registry);
                 hud.draw();

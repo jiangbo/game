@@ -36,7 +36,7 @@ pub fn update(delta: f32) void {
     time += delta;
 
     if (showCredits) {
-        if (zhu.input.anyChanged()) showCredits = false;
+        if (zhu.window.inputChanged()) showCredits = false;
         return;
     }
 

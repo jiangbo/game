@@ -27,15 +27,15 @@ pub fn reset() void {
     state = null;
 }
 
-pub fn update(inv: *Inventory) void {
-    if (zhu.mouse.pressed(.LEFT)) start(inv);
+pub fn update(inv: *Inventory, canStart: bool) void {
+    if (canStart and zhu.key.pressed(.MOUSE_LEFT)) start(inv);
 
     if (state) |*current| {
         input.mouseCaptured = true;
-        const offset = zhu.window.mouse.sub(current.start);
+        const offset = zhu.mouse.pos.sub(current.start);
         if (offset.length2() >= threshold2) current.moved = true;
 
-        if (zhu.mouse.released(.LEFT)) finish(inv);
+        if (zhu.key.released(.MOUSE_LEFT)) finish(inv);
     }
 }
 
@@ -70,16 +70,16 @@ pub fn draw() void {
 
     // 拖拽预览半透明，对齐 CPP UIDragPreview 的 0.6 alpha。
     const icon = factory.itemConfig(current.item.item).icon;
-    zhu.batch.drawImage(factory.resolveImage(icon), zhu.window.mouse, .{
+    zhu.batch.drawImage(factory.resolveImage(icon), zhu.mouse.pos, .{
         .size = icon.size,
         .anchor = .center,
-        .color = .{ .a = 0.6 },
+        .color = zhu.Color.white.withAlpha(0.6),
     });
 
     if (current.item.count <= 1) return;
 
     const rect = zhu.Rect.init(
-        zhu.window.mouse.sub(bag.zon.slotSize.scale(0.5)),
+        zhu.mouse.pos.sub(bag.zon.slotSize.scale(0.5)),
         bag.zon.slotSize,
     );
     item.drawCount(current.item.count, rect);
@@ -95,7 +95,7 @@ fn start(inv: *Inventory) void {
             .source = .{ .bag = index },
             .bagIndex = index,
             .item = slot.*,
-            .start = zhu.window.mouse,
+            .start = zhu.mouse.pos,
         };
         return;
     }
@@ -108,7 +108,7 @@ fn start(inv: *Inventory) void {
         .source = .{ .bar = barIndex },
         .bagIndex = bagIndex,
         .item = slot.*,
-        .start = zhu.window.mouse,
+        .start = zhu.mouse.pos,
     };
 }
 

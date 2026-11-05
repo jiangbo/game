@@ -12,7 +12,7 @@ const Background = struct {
     speed: f32,
 
     fn init(path: [:0]const u8, speed: f32) Background {
-        const image = zhu.loadImage(path, .{ .size = .all(1000) });
+        const image = zhu.loadImage(path, .all(1000), .{});
         return .{
             .image = image,
             .size = image.size.scale(0.5),

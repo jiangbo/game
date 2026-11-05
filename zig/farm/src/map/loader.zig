@@ -20,7 +20,7 @@ const mock: []const tiled.Map = @import("../zon/map/mock.zon");
 pub const Loaded = struct {
     land: Land,
     spatial: Spatial,
-    vertexes: std.ArrayList(zhu.batch.Vertex) = .empty,
+    vertexes: std.ArrayList(zhu.Vertex) = .empty,
     frontStart: usize = 0,
     loaded: bool = false,
 };
@@ -258,7 +258,7 @@ fn loadLight(ctx: *Context, object: tiled.Object) void {
 }
 
 fn appendVertex(ctx: *Context, position: zhu.Vector2, image: zhu.Image) void {
-    ctx.loaded.vertexes.append(ctx.gpa.raw, .{
+    ctx.loaded.vertexes.append(ctx.gpa, .{
         .position = position,
         .layer = image.layer,
         .size = image.size,
@@ -275,9 +275,6 @@ fn setProductTiles(ctx: *Context, entity: ecs.Entity, rect: zhu.Rect) void {
 }
 
 test "actor 点对象会生成 NPC，player 点对象只保留标记" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-    putMockNpcImages();
 
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
@@ -355,12 +352,9 @@ test "rest 对象会创建可交互实体" {
 }
 
 test "加载地图产出对象会按对象和 rock 图层写入目标格" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
 
     const imageId = 1234;
     const tileSetId = 5678;
-    zhu.assets.putImage(imageId, .{ .size = .xy(48, 16) });
 
     const treeProps = [_]tiled.Property{
         .{ .name = "obj_type", .value = .{ .string = "tree" } },
@@ -420,12 +414,4 @@ test "加载地图产出对象会按对象和 rock 图层写入目标格" {
     try std.testing.expectEqual(.stone, rockProd.value.item);
     try std.testing.expectEqual(rockCfg.health.?, rockHp.value);
     try std.testing.expectEqual(null, loaded.land.tiles[2].object);
-}
-
-fn putMockNpcImages() void {
-    const image = zhu.Image{ .size = .xy(192, 96) };
-    zhu.assets.putImage(factory.zon.friend.sprite.imageId, image);
-    for (factory.zon.friend.animations) |animation| {
-        zhu.assets.putImage(animation.imageId, image);
-    }
 }

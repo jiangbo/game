@@ -64,7 +64,7 @@ fn drawSlot(index: usize) void {
         }),
     };
 
-    menu.drawText(index, label);
+    menu.drawLabel(index, label);
 }
 
 const load = struct {

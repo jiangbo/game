@@ -187,7 +187,7 @@ pub fn clamp(old: Vector2, new: Vector2, size: Vector2) Vector2 {
     return .xy(clampedX.x, clampedY.y);
 }
 
-const epsilon = zhu.Vector2.one.scale(-zhu.math.epsilon);
+const epsilon = zhu.Vector2.one.scale(-zhu.epsilon);
 fn clampLeft(new: Vector2, size: Vector2) Vector2 {
     const sz = size.add(epsilon);
 

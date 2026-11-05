@@ -232,8 +232,7 @@ fn spawnEnemy(reg: *ecs.World, enemyEnum: com.EnemyEnum) void {
         .speed = template.speed,
     });
 
-    const index: u8 = @backingInt(com.StateEnum.walk);
-    reg.getPtr(entity, com.Animation).?.play(index);
+    reg.getPtr(entity, com.Animation).?.playIndex(com.StateEnum.walk);
     std.log.info("spawn enemy: {}", .{entity});
 }
 
@@ -241,7 +240,7 @@ fn doSpawn(reg: *ecs.World, zon: *const Template) ecs.Entity {
     const entity = reg.createEntity();
 
     const imagePath = zon.image.path;
-    const image = zhu.assets.loadImage(imagePath, .{ .size = zon.image.size });
+    const image = zhu.assets.loadImage(imagePath, zon.image.size, .{});
     reg.add(entity, com.Sprite{
         .image = image.sub(.init(.zero, zon.size)),
         .offset = zon.offset,
@@ -354,8 +353,7 @@ pub fn deadEnemy(reg: *ecs.World, entity: Entity) void {
     const position = reg.get(entity, com.Position).?;
     var animation = reg.get(entity, com.Animation).?;
 
-    const damageIndex: u8 = @backingInt(com.StateEnum.damage);
-    animation.play(damageIndex);
+    animation.playIndex(com.StateEnum.damage);
     animation.source.loop = false;
 
     const newEntity = reg.createEntity();
@@ -369,7 +367,7 @@ pub fn deadEnemy(reg: *ecs.World, entity: Entity) void {
 pub fn effect(reg: *ecs.World, effectEnum: com.EffectEnum) Entity {
     const value = &effectZon[@backingInt(effectEnum)];
     const entity = reg.createEntity();
-    const image = zhu.assets.loadImage(value.image.path, .{ .size = value.image.size });
+    const image = zhu.assets.loadImage(value.image.path, value.image.size, .{});
 
     reg.add(entity, com.Sprite{
         .image = image.sub(.init(value.position, value.size)),
@@ -419,7 +417,7 @@ pub fn projectile(reg: *ecs.World, delta: f32) void {
 
         const damage = reg.get(entity, com.Stats).?.attack;
         const new = reg.createEntity();
-        const image = zhu.assets.loadImage(value.image, .{ .size = value.imageSize });
+    const image = zhu.assets.loadImage(value.image, value.imageSize, .{});
         const start = reg.get(entity, com.Position).?;
         const drawStart = start.add(value.offset);
         reg.add(new, image.sub(.init(value.position, value.size)));

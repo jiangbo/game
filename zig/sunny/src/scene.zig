@@ -140,8 +140,7 @@ pub fn update(delta: f32) void {
 }
 
 pub fn draw() void {
-    zhu.batch.beginDraw();
-    zhu.batch.useTarget(.black, .{});
+    zhu.batch.beginDraw(.black, .{});
     defer zhu.batch.endDraw();
 
     if (state == .title) return title.draw();

@@ -25,20 +25,20 @@ pub fn init() void {
 }
 
 pub fn update(world: *World) void {
-    if (world.getIdentity(Dialog)) |target| {
+    if (world.getIdentityEntity(Dialog)) |target| {
         checkDistance(world, target);
         if (input.pressed(.interact)) advanceDialog(world, target);
         return;
     }
 
-    const target = world.getIdentity(Interact) orelse return;
+    const target = world.getIdentityEntity(Interact) orelse return;
     if (!world.has(target, Dialog)) return;
 
     startDialog(world, target);
 }
 
 fn checkDistance(world: *World, target: Entity) void {
-    const player = world.getIdentity(Player).?;
+    const player = world.getIdentityEntity(Player).?;
     const playerPos = world.get(player, Position).?;
     const targetPos = world.get(target, Position) orelse {
         closeDialog(world, target);
@@ -59,7 +59,7 @@ fn startDialog(world: *World, target: Entity) void {
 }
 
 fn facePlayer(world: *World, target: Entity) void {
-    const player = world.getIdentity(Player).?;
+    const player = world.getIdentityEntity(Player).?;
     const playerPos = world.get(player, Position).?;
     const targetPos = world.get(target, Position).?;
 
@@ -94,7 +94,7 @@ fn advanceDialog(world: *World, target: Entity) void {
 }
 
 fn closeDialog(world: *World, target: Entity) void {
-    const active = world.getIdentity(Dialog) orelse return;
+    const active = world.getIdentityEntity(Dialog) orelse return;
     if (active != target) return;
 
     if (world.getPtr(target, Dialog)) |dialog| dialog.index = 0;
@@ -102,7 +102,7 @@ fn closeDialog(world: *World, target: Entity) void {
 }
 
 pub fn draw(world: *World) void {
-    const entity = world.getIdentity(Dialog) orelse return;
+    const entity = world.getIdentityEntity(Dialog) orelse return;
     const dialog = world.get(entity, Dialog).?;
     if (dialog.index >= dialog.lines.len) return;
 
@@ -152,15 +152,15 @@ test "dialog 消费交互标记并开始对话" {
 
     update(&world);
 
-    try std.testing.expectEqual(npc, world.getIdentity(Dialog).?);
-    try std.testing.expectEqual(npc, world.getIdentity(Interact).?);
+    try std.testing.expectEqual(npc, world.getIdentityEntity(Dialog).?);
+    try std.testing.expectEqual(npc, world.getIdentityEntity(Interact).?);
     try std.testing.expect(world.get(npc, Velocity).?.value.approxEqual(.zero));
     try std.testing.expectEqual(.up, world.get(npc, Actor).?.facing);
 }
 
 test "dialog 对话中按交互键会推进并关闭" {
-    zhu.input.reset();
-    defer zhu.input.reset();
+    zhu.window.resetInput();
+    defer zhu.window.resetInput();
 
     var world = World.init(std.testing.allocator);
     defer world.deinit();
@@ -173,7 +173,7 @@ test "dialog 对话中按交互键会推进并关闭" {
     zhu.key.set(.F, true);
     update(&world);
 
-    try std.testing.expectEqual(null, world.getIdentity(Dialog));
+    try std.testing.expectEqual(null, world.getIdentityEntity(Dialog));
     try std.testing.expectEqual(@as(usize, 0), world.get(npc, Dialog).?.index);
 }
 
@@ -187,5 +187,5 @@ test "dialog 距离过远会关闭对话" {
 
     update(&world);
 
-    try std.testing.expectEqual(null, world.getIdentity(Dialog));
+    try std.testing.expectEqual(null, world.getIdentityEntity(Dialog));
 }

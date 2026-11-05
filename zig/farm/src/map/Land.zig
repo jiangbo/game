@@ -34,7 +34,7 @@ pub const Tile = struct {
 
 pub fn init(gpa: zhu.Allocator, grid: tiled.Grid) Land {
     var self = Land{ .grid = grid };
-    self.tiles = gpa.alloc(Tile, grid.count());
+    self.tiles = gpa.alloc(Tile, grid.count()) catch zhu.oom();
     @memset(self.tiles, .{});
     return self;
 }
@@ -86,7 +86,7 @@ pub fn draw(self: Land, dry: zhu.Image, wet: zhu.Image) void {
 }
 
 fn appendVertex(position: zhu.Vector2, image: zhu.Image) void {
-    zhu.batch.vertices.appendAssumeCapacity(.{
+    zhu.assets.gpu.addVertex(.{
         .position = position,
         .layer = image.layer,
         .size = image.size,

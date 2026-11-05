@@ -6,7 +6,7 @@ const Trigger = component.map.Trigger;
 const Transition = component.map.Transition;
 
 pub fn update(world: *ecs.World) void {
-    const player = world.getIdentity(component.actor.Player).?;
+    const player = world.getIdentityEntity(component.actor.Player).?;
     const position = world.get(player, component.Position).?;
 
     var query = world.query(.{Trigger});

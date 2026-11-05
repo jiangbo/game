@@ -44,12 +44,11 @@ var config: storage.Config = .{};
 pub fn init(allocator_: zhu.Allocator) void {
     allocator = allocator_;
 
-    world = World.init(allocator.raw);
-    world.entity = world.createEntity();
-    world.add(world.entity, resource.Clock{});
-    world.add(world.entity, resource.Inventory{});
-    world.add(world.entity, resource.Notice{});
-    world.add(world.entity, resource.Speed{});
+    world = World.init(allocator);
+    world.addResource(resource.Clock{});
+    world.addResource(resource.Inventory{});
+    world.addResource(resource.Notice{});
+    world.addResource(resource.Speed{});
 
     // 存档状态先就位，UI 只持有这份长期有效的槽位切片。
     config = storage.init(&world);
@@ -57,13 +56,14 @@ pub fn init(allocator_: zhu.Allocator) void {
     title.init();
     map.init();
 
-    canvas = zhu.graphics.createRenderTarget(zhu.window.size);
+    canvas = zhu.graphics.createRenderTarget(zhu.camera.size, .nearest);
 
     system.init();
     enterScene(current);
 }
 
 pub fn deinit() void {
+    canvas.deinit();
     map.deinit(allocator, &world);
     ui.deinit();
     world.deinit();
@@ -91,20 +91,20 @@ pub fn update(delta: f32) void {
 }
 
 pub fn draw() void {
-    const clearColor: zhu.Color = .rgb(0.23, 0.31, 0.27);
+    const clearColor: zhu.Color = .rgb(59, 79, 69);
     switch (current) {
         .title => {
-            zhu.batch.useTarget(clearColor, .{});
+            zhu.batch.beginDraw(clearColor, .{});
             title.draw();
         },
         .play => {
-            zhu.batch.useTarget(clearColor, .{ .target = &canvas });
+            zhu.batch.beginDraw(clearColor, .{ .target = &canvas });
             drawPlay();
 
             zhu.batch.useTarget(clearColor, .{});
-            zhu.batch.drawImage(canvas.image, .zero, .{
-                .camera = .window,
-            });
+            zhu.camera.push(.window);
+            defer zhu.camera.pop();
+            zhu.batch.drawImage(canvas.image, .zero, .{});
             if (mapFade.phase) |phase| drawMapFade(phase);
         },
     }
@@ -132,14 +132,14 @@ fn updatePlayUi(req: ui.Request) void {
 }
 
 fn updatePlay(delta: f32) void {
-    const clock = world.getPtr(world.entity, resource.Clock).?;
+    const clock = world.getResourcePtr(resource.Clock).?;
 
     // 农场主循环顺序在这里显式编排，新增系统需要在这里确定位置。
     if (pending != null) return;
     if (clock.paused) return;
 
     // 已提交的切图请求先进入过渡，不再瞬时换图。
-    if (world.hasIdentity(actor.Player, Transition)) {
+    if (world.getIdentity(actor.Player, Transition) != null) {
         mapFade.phase = .out;
         mapFade.timer.restart();
         return;
@@ -155,7 +155,7 @@ fn updateMapFade(delta: f32) bool {
 
     switch (phase) {
         .out => {
-            const playerEntity = world.getIdentity(actor.Player).?;
+            const playerEntity = world.getIdentityEntity(actor.Player).?;
             const request = world.get(playerEntity, Transition).?;
             map.exit(allocator, &world);
             resetWorld();
@@ -192,9 +192,9 @@ fn enterScene(next: Scene) void {
 }
 
 fn enterPlay(loadSlot: ?u8) void {
-    const clock = world.getPtr(world.entity, resource.Clock).?;
+    const clock = world.getResourcePtr(resource.Clock).?;
 
-    zhu.camera.main.scale = .square(2);
+    zhu.camera.main.scale = .all(2);
 
     if (loadSlot) |slot| {
         if (!load(slot)) {
@@ -208,13 +208,13 @@ fn enterPlay(loadSlot: ?u8) void {
 
     // 新游戏从固定初始地图和基础工具开始。
     clock.reset();
-    world.getPtr(world.entity, resource.Notice).?.reset();
+    world.getResourcePtr(resource.Notice).?.reset();
     map.resetState();
 
     resetWorld();
     map.enter(allocator, &world, .exterior);
     player.spawn(&world, -1);
-    const inv = world.getPtr(world.entity, resource.Inventory).?;
+    const inv = world.getResourcePtr(resource.Inventory).?;
     inv.reset();
     ui.resetInventory();
     _ = inv.add(.hoe, 1);
@@ -248,8 +248,8 @@ fn load(slot: u8) bool {
 }
 
 fn capture() storage.Record {
-    const clock = world.getPtr(world.entity, resource.Clock).?;
-    const inv = world.getPtr(world.entity, resource.Inventory).?;
+    const clock = world.getResourcePtr(resource.Clock).?;
+    const inv = world.getResourcePtr(resource.Inventory).?;
 
     return .{
         .timestamp = zhu.window.timestamp().toSeconds(),
@@ -261,10 +261,10 @@ fn capture() storage.Record {
 }
 
 fn restore(record: storage.Record) void {
-    const clock = world.getPtr(world.entity, resource.Clock).?;
+    const clock = world.getResourcePtr(resource.Clock).?;
 
     clock.* = record.clock;
-    world.getPtr(world.entity, resource.Notice).?.reset();
+    world.getResourcePtr(resource.Notice).?.reset();
 
     map.unload(allocator);
     map.restore(allocator, record.maps, clock.day);
@@ -274,13 +274,12 @@ fn restore(record: storage.Record) void {
     player.spawn(&world, -1);
     player.restore(&world, record.player);
     ui.resetInventory();
-    world.getPtr(world.entity, resource.Inventory).?.restore(record.inventory);
+    world.getResourcePtr(resource.Inventory).?.restore(record.inventory);
 }
 
 fn resetWorld() void {
-    // 资源实体固定为第一个实体，重建后继续使用保留的资源组件。
-    world.resetKeep(resource.keep);
-    world.entity = world.createEntity();
+    // 重建世界时保留时钟、背包、提示和速度资源。
+    world.resetKeepResources(resource.keep);
 }
 
 fn drawPlay() void {
@@ -306,6 +305,6 @@ fn drawMapFade(phase: MapFade.Phase) void {
     zhu.camera.push(.window);
     defer zhu.camera.pop();
 
-    const rect = zhu.Rect.init(.zero, zhu.window.size);
-    zhu.batch.drawRect(rect, .{ .color = .gray(0, alpha) });
+    const rect = zhu.Rect.init(.zero, zhu.camera.size);
+    zhu.batch.drawRect(rect, .{ .color = zhu.Color.black.withAlpha(alpha) });
 }

@@ -35,7 +35,7 @@ pub fn update(world: *ecs.World, delta: f32) void {
                 actor.action = .idle;
 
                 const row = actorRow(actor, sprite);
-                animation.playRow(Action.idle, row, true);
+                playActor(animation, .idle, row, true);
                 sprite.image = animation.subImage();
             },
         }
@@ -50,33 +50,34 @@ fn updateActor(world: *ecs.World) void {
         const sprite = query.getPtr(entity, Sprite);
 
         const row = actorRow(actor, sprite);
-        const index = zhu.math.toIndex(u8, actor.action);
+        const index = zhu.toIndex(u8, actor.action);
         const sameAction = animation.sourceIndex == index;
         if (sameAction and animation.row == row) continue;
 
         const loop = actor.action == .idle or
             actor.action == .walk or actor.action == .sleep or
             actor.action == .eat;
-        animation.playRow(actor.action, row, loop);
+        playActor(animation, actor.action, row, loop);
     }
 }
 
+fn playActor(animation: *Animation, action: Action, row: u8, loop: bool) void {
+    animation.play(action, row);
+    animation.source.loop = loop;
+}
+
 fn actorRow(actor: *const Actor, sprite: *Sprite) u8 {
-    const raw = actor.rows[@intFromEnum(actor.facing)];
+    const raw = actor.rows[@backingInt(actor.facing)];
     sprite.flip = raw < 0;
     std.debug.assert(raw != 0);
     return @intCast(@abs(raw) - 1);
 }
 
 test "动画系统会按角色方向行更新精灵" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-
     const frames = [_]zhu.graphics.Frame{
         .{ .offset = .zero, .duration = 0.1 },
     };
     const image = zhu.Image{ .size = .xy(32, 32) };
-    zhu.assets.putImage(1, image);
 
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
@@ -84,10 +85,10 @@ test "动画系统会按角色方向行更新精灵" {
     const entity = world.createEntity();
     world.add(entity, Actor{ .action = .walk, .facing = .left });
     const sources = [_]zhu.Animation.Source{
-        .{ .imageId = 1, .clip = &frames },
-        .{ .imageId = 1, .clip = &frames },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
     };
-    world.add(entity, Animation.initSource(&sources, image.size));
+    world.add(entity, Animation.initSource(&sources));
     world.add(entity, Sprite{ .image = image });
 
     update(&world, 0);
@@ -98,14 +99,10 @@ test "动画系统会按角色方向行更新精灵" {
 }
 
 test "负数行号表示翻转" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-
     const frames = [_]zhu.graphics.Frame{
         .{ .offset = .zero, .duration = 0.1 },
     };
     const image = zhu.Image{ .size = .xy(32, 32) };
-    zhu.assets.putImage(1, image);
 
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
@@ -117,9 +114,9 @@ test "负数行号表示翻转" {
         .rows = .{ 1, 2, 3, -1 },
     });
     const sources = [_]zhu.Animation.Source{
-        .{ .imageId = 1, .clip = &frames },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
     };
-    world.add(entity, Animation.initSource(&sources, image.size));
+    world.add(entity, Animation.initSource(&sources));
     world.add(entity, Sprite{ .image = image });
 
     update(&world, 0);
@@ -130,14 +127,10 @@ test "负数行号表示翻转" {
 }
 
 test "工具动画结束后解除忙碌状态" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-
     const frames = [_]zhu.graphics.Frame{
         .{ .offset = .zero, .duration = 0.1 },
     };
     const image = zhu.Image{ .size = .xy(32, 32) };
-    zhu.assets.putImage(1, image);
 
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
@@ -145,13 +138,13 @@ test "工具动画结束后解除忙碌状态" {
     const entity = world.createEntity();
     world.add(entity, Actor{ .action = .hoe });
     const sources = [_]zhu.Animation.Source{
-        .{ .imageId = 1, .clip = &frames },
-        .{ .imageId = 1, .clip = &frames },
-        .{ .imageId = 1, .clip = &frames },
-        .{ .imageId = 1, .clip = &frames },
-        .{ .imageId = 1, .clip = &frames },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
     };
-    world.add(entity, Animation.initSource(&sources, image.size));
+    world.add(entity, Animation.initSource(&sources));
     world.add(entity, Sprite{ .image = image });
     world.add(entity, Busy{});
 
@@ -163,9 +156,6 @@ test "工具动画结束后解除忙碌状态" {
 }
 
 test "动画进入关键帧时挂上生效标记" {
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-
     const frames = [_]zhu.graphics.Frame{
         .{ .offset = .zero, .duration = 0.1 },
         .{
@@ -175,7 +165,6 @@ test "动画进入关键帧时挂上生效标记" {
         },
     };
     const image = zhu.Image{ .size = .xy(64, 32) };
-    zhu.assets.putImage(1, image);
 
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
@@ -183,13 +172,13 @@ test "动画进入关键帧时挂上生效标记" {
     const entity = world.createEntity();
     world.add(entity, Actor{ .action = .hoe });
     const sources = [_]zhu.Animation.Source{
-        .{ .imageId = 1, .clip = &frames },
-        .{ .imageId = 1, .clip = &frames },
-        .{ .imageId = 1, .clip = &frames },
-        .{ .imageId = 1, .clip = &frames },
-        .{ .imageId = 1, .clip = &frames },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
+        .{ .imageId = 1, .frames = &frames, .size = image.size },
     };
-    world.add(entity, Animation.initSource(&sources, .xy(32, 32)));
+    world.add(entity, Animation.initSource(&sources));
     world.add(entity, Sprite{ .image = image });
     world.add(entity, Busy{});
 

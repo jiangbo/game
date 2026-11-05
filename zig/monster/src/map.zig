@@ -42,15 +42,9 @@ pub var places: std.ArrayList(Place) = .empty;
 
 pub fn init(allocator: zhu.Allocator, levelIndex: usize) void {
     data = &maps[levelIndex];
-    _ = zhu.loadImage("textures/Units/Archer.png", .{
-        .size = .xy(1536, 384),
-    });
-    _ = zhu.loadImage("textures/Units/Lancer.png", .{
-        .size = .xy(3840, 640),
-    });
-    _ = zhu.loadImage("textures/Units/Warrior.png", .{
-        .size = .xy(1536, 576),
-    });
+    _ = zhu.loadImage("textures/Units/Archer.png", .xy(1536, 384), .{});
+    _ = zhu.loadImage("textures/Units/Lancer.png", .xy(3840, 640), .{});
+    _ = zhu.loadImage("textures/Units/Warrior.png", .xy(1536, 576), .{});
     @memset(&startPaths, 0);
 
     for (data.layers) |*layer| {

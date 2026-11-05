@@ -36,14 +36,14 @@ areas: std.ArrayList(zhu.Rect) = .empty,
 
 pub fn init(gpa: zhu.Allocator, grid: Grid) Spatial {
     var self = Spatial{ .grid = grid };
-    self.tiles = gpa.alloc(Marks, self.grid.count());
-    @memset(self.tiles, Marks.initEmpty());
+    self.tiles = gpa.alloc(Marks, self.grid.count()) catch zhu.oom();
+    @memset(self.tiles, Marks.empty);
     return self;
 }
 
 pub fn deinit(self: *Spatial, gpa: zhu.Allocator) void {
     gpa.free(self.tiles);
-    self.areas.clearAndFree(gpa.raw);
+    self.areas.clearAndFree(gpa);
 }
 
 pub fn setTileBlock(self: *Spatial, index: usize) void {
@@ -94,7 +94,7 @@ pub fn clearTileBlock(self: *Spatial, index: usize) void {
 
 pub fn marksAt(self: Spatial, position: zhu.Vector2) Marks {
     const index = self.grid.worldToIndex(position);
-    return self.tiles[index orelse return .initEmpty()];
+    return self.tiles[index orelse return .empty];
 }
 
 pub fn hasAnyBlock(marks: Marks) bool {
@@ -113,7 +113,7 @@ pub fn canHoeTile(self: Spatial, position: zhu.Vector2) bool {
 
 pub fn addSolidRect(self: *Spatial, gpa: zhu.Allocator, rect: zhu.Rect) void {
     std.debug.assert(rect.size.x > 0 and rect.size.y > 0);
-    self.areas.append(gpa.raw, rect) catch zhu.oom();
+    self.areas.append(gpa, rect) catch zhu.oom();
 }
 
 // SolidRange 只记录对象加入 areas 时的起点和数量。

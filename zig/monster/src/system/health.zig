@@ -65,7 +65,7 @@ pub fn draw(reg: *ecs.World) void {
         if (percent > 0.7) color = .green //
         else if (percent > 0.3) color = .yellow;
 
-        var rect = zhu.math.Rect{ .min = pos, .size = size };
+        var rect = zhu.Rect{ .min = pos, .size = size };
         zhu.batch.drawRectBorder(rect, 2, color);
         rect.size.x *= @max(percent, 0);
         zhu.batch.drawRect(rect, .{ .color = color });

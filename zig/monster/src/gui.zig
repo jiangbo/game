@@ -50,7 +50,7 @@ pub fn update(reg: *ecs.World, delta: f32) void {
             renderTitleUI();
         },
         .battle => {
-            if (zhu.input.key.pressed(.P)) ctx.paused = !ctx.paused;
+            if (zhu.key.pressed(.P)) ctx.paused = !ctx.paused;
 
             renderHoveredUnit(reg);
             renderSelectedUnit(reg);
@@ -175,7 +175,7 @@ fn renderSelectedSkill(reg: *ecs.World, entity: ecs.Entity) void {
     gui.igBeginDisabled(!ready);
     const clicked = gui.igButton(value.name.ptr);
     gui.igEndDisabled();
-    if (ready and (clicked or zhu.input.key.pressed(.S))) {
+    if (ready and (clicked or zhu.key.pressed(.S))) {
         reg.add(entity, com.skill.Cast{});
     }
     gui.igSameLine();
@@ -214,7 +214,7 @@ fn renderSelectedUpgrade(reg: *ecs.World, entity: ecs.Entity) void {
     gui.igSameLine();
     _ = gui.igText("快捷键 U: COST消费: %.0f", upgradeCost);
 
-    if (ctx.cost >= upgradeCost and (clicked or zhu.input.key.pressed(.U))) {
+    if (ctx.cost >= upgradeCost and (clicked or zhu.key.pressed(.U))) {
         ctx.cost -= upgradeCost;
         spawn.upgradeUnit(reg, entity);
     }
@@ -226,7 +226,7 @@ fn renderSelectedLeave(reg: *ecs.World, entity: ecs.Entity) void {
     const player = reg.get(entity, com.Player).?;
     const refund = player.cost * 0.5;
 
-    if (gui.igButton("撤退") or zhu.input.key.pressed(.R)) {
+    if (gui.igButton("撤退") or zhu.key.pressed(.R)) {
         ctx.cost += refund;
         reg.add(entity, com.Dead{});
         ctx.selectedEntity = null;

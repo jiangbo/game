@@ -20,10 +20,10 @@ var popup: ?Popup = null;
 
 pub fn init() void {
     const bgPath = "farm-rpg-bg.png";
-    background = zhu.assets.loadImage(bgPath, .xy(1280, 800));
+    background = zhu.assets.loadImage(bgPath, .xy(1280, 800), .{});
     logo = zhu.getImage("textures/UI/farm-rpg-logo.png").?;
-    const size = pauseButton.buttons[0].rect.size;
-    pauseButton.position = .xy(zhu.window.size.x - 10 - size.x, 10);
+    const size = pauseButton.buttons[0].shape.toRect().size;
+    pauseButton.position = .xy(zhu.camera.size.x - 10 - size.x, 10);
 }
 
 pub fn enter() void {
@@ -50,7 +50,7 @@ pub fn update(delta: f32) ?Request {
     }
 
     if (mainMenu.update(.{})) |value| {
-        switch (@as(Button, @enumFromInt(value))) {
+        switch (@as(Button, @fromBackingInt(@intCast(value)))) {
             .start => return .start,
             .load => {
                 save.open(.load);
@@ -84,7 +84,7 @@ fn updatePopup(active: Popup) ?Request {
 
 pub fn draw() void {
     zhu.batch.drawImage(background, .zero, .{
-        .size = zhu.window.size,
+        .size = zhu.camera.size,
     });
     const y = 115 + @sin(elapsed * 2) * 5;
     zhu.batch.drawImage(logo, .xy(320, y), .{

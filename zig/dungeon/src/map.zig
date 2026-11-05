@@ -34,7 +34,7 @@ var walks: [HEIGHT * WIDTH]bool = undefined;
 var theme: Theme = undefined;
 
 pub fn init(mapLevel: u8) void {
-    image = zhu.assets.loadImage("dungeonfont.png", .{ .size = .all(512) });
+    image = zhu.assets.loadImage("dungeonfont.png", .all(512), .{});
     zhu.camera.bound = size;
     theme = if (zhu.random.boolean()) .dungeon else .forest;
     currentLevel = mapLevel;

@@ -19,10 +19,10 @@ pub fn update(world: *World) void {
     world.removeIdentity(Interact);
 
     // 对话中按键由 dialog 系统消费，不再重新寻找目标。
-    if (world.getIdentity(Dialog) != null) return;
+    if (world.getIdentityEntity(Dialog) != null) return;
     if (!input.pressed(.interact)) return;
 
-    const player = world.getIdentity(Player).?;
+    const player = world.getIdentityEntity(Player).?;
     const playerPos = targetCenter(world, player);
 
     markFacingHits(world);
@@ -47,7 +47,7 @@ pub fn update(world: *World) void {
 
 /// 标记玩家正前方探测框范围内所有实体的 Hit 组件。
 fn markFacingHits(world: *World) void {
-    const player = world.getIdentity(Player).?;
+    const player = world.getIdentityEntity(Player).?;
     const pos = world.get(player, Position).?;
     const facing = world.get(player, component.actor.Actor).?.facing;
 
@@ -60,7 +60,7 @@ fn markFacingHits(world: *World) void {
         .right => zhu.Vector2.xy(ts - half, -half),
         .left => zhu.Vector2.xy(-ts - half, -half),
     });
-    const rect = zhu.Rect.init(origin, .square(probeSize));
+    const rect = zhu.Rect.init(origin, .all(probeSize));
 
     var query = world.query(.{ Position, Shape });
     while (query.next()) |entity| {
@@ -96,8 +96,8 @@ fn addTestNpc(world: *World, position: Position) Entity {
 }
 
 test "interact 按下交互键会给最近目标挂交互标记" {
-    zhu.input.reset();
-    defer zhu.input.reset();
+    zhu.window.resetInput();
+    defer zhu.window.resetInput();
 
     const oldGrid = map.grid;
     map.grid = .{ .width = 3, .height = 3, .cell = 16 };
@@ -113,14 +113,14 @@ test "interact 按下交互键会给最近目标挂交互标记" {
     zhu.key.set(.F, true);
     update(&world);
 
-    try std.testing.expectEqual(near, world.getIdentity(Interact).?);
+    try std.testing.expectEqual(near, world.getIdentityEntity(Interact).?);
     try std.testing.expect(!world.isIdentity(far, Interact));
     try std.testing.expectEqual(0, world.values(Hit).len);
 }
 
 test "interact 对话中不会重新寻找目标" {
-    zhu.input.reset();
-    defer zhu.input.reset();
+    zhu.window.resetInput();
+    defer zhu.window.resetInput();
 
     const oldGrid = map.grid;
     map.grid = .{ .width = 3, .height = 3, .cell = 16 };
@@ -137,14 +137,14 @@ test "interact 对话中不会重新寻找目标" {
     zhu.key.set(.F, true);
     update(&world);
 
-    try std.testing.expectEqual(talking, world.getIdentity(Dialog).?);
-    try std.testing.expectEqual(null, world.getIdentity(Interact));
+    try std.testing.expectEqual(talking, world.getIdentityEntity(Dialog).?);
+    try std.testing.expectEqual(null, world.getIdentityEntity(Interact));
     try std.testing.expect(world.has(target, Interact));
 }
 
 test "interact 下一帧会清理上一次交互目标" {
-    zhu.input.reset();
-    defer zhu.input.reset();
+    zhu.window.resetInput();
+    defer zhu.window.resetInput();
 
     var world = World.init(std.testing.allocator);
     defer world.deinit();
@@ -154,7 +154,7 @@ test "interact 下一帧会清理上一次交互目标" {
 
     update(&world);
 
-    try std.testing.expectEqual(null, world.getIdentity(Interact));
+    try std.testing.expectEqual(null, world.getIdentityEntity(Interact));
 }
 
 test "interact 玩家紧贴 NPC 上方朝下时探测框能命中" {

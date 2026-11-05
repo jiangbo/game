@@ -129,7 +129,7 @@ pub fn draw() void {
         });
 
         const max = enemy.stats.maxHealth;
-        const percent = zhu.math.percentInt(enemy.stats.health, max);
+        const percent = zhu.percentInt(enemy.stats.health, max);
         const pos = enemy.position.sub(.xy(32, 32)).addY(size.y - 10);
 
         var color: zhu.Color = .rgb(255, 165, 0);

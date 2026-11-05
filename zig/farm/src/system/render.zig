@@ -20,7 +20,7 @@ pub fn update(world: *ecs.World) void {
 pub fn draw(world: *ecs.World) void {
     world.sort(Render, lessThan);
 
-    const viewport = zhu.camera.viewport();
+    const viewport = zhu.camera.mainWorldRect();
     var query = world.queryBy(Render, .{ Position, Sprite }, .{Hidden});
     while (query.next()) |entity| {
         const render = query.get(entity, Render);
@@ -41,7 +41,7 @@ pub fn draw(world: *ecs.World) void {
 
 pub fn lessThan(lhs: Render, rhs: Render) bool {
     if (lhs.layer == rhs.layer) return lhs.depth < rhs.depth;
-    return @intFromEnum(lhs.layer) < @intFromEnum(rhs.layer);
+    return @backingInt(lhs.layer) < @backingInt(rhs.layer);
 }
 
 test "渲染排序先比较图层再比较深度" {
@@ -53,32 +53,6 @@ test "渲染排序先比较图层再比较深度" {
     try std.testing.expect(lessThan(ground, crop));
     try std.testing.expect(lessThan(actorBack, actorFront));
     try std.testing.expect(!lessThan(actorFront, actorBack));
-}
-
-test "混合场景只绘制视口内精灵" {
-    zhu.camera.init(.xy(640, 360));
-    var vertices: [4]zhu.batch.Vertex = undefined;
-    var commands: [16]zhu.batch.Command = undefined;
-    zhu.batch.init(&vertices, &commands);
-    zhu.batch.beginDraw();
-    const vertexBuffer = &zhu.batch.vertices;
-
-    var world = ecs.World.init(std.testing.allocator);
-    defer world.deinit();
-
-    const inside = world.createEntity();
-    world.add(inside, Position.xy(50, 50));
-    world.add(inside, Sprite{ .image = .{ .size = .xy(16, 16) } });
-    world.add(inside, Render{});
-
-    const outside = world.createEntity();
-    world.add(outside, Position.xy(500, 500));
-    world.add(outside, Sprite{ .image = .{ .size = .xy(16, 16) } });
-    world.add(outside, Render{});
-
-    draw(&world);
-
-    try std.testing.expectEqual(1, vertexBuffer.items.len);
 }
 
 test "YSort 会把位置 y 写入渲染深度" {

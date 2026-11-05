@@ -25,7 +25,7 @@ fn playEntities(world: *ecs.World) void {
     while (query.next()) |entity| {
         const position = query.get(entity, Position);
         const id = query.get(entity, Id);
-        const viewport = zhu.camera.viewport();
+        const viewport = zhu.camera.mainWorldRect();
         if (!viewport.contains(position)) continue;
 
         const center = viewport.center();

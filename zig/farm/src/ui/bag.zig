@@ -136,23 +136,23 @@ pub fn draw(inv: *Inventory, hidden: ?usize) void {
 fn updatePanelDrag() bool {
     if (drag) |offset| {
         input.mouseCaptured = true;
-        if (zhu.mouse.released(.LEFT)) drag = null else {
-            position = zhu.window.mouse.sub(offset);
+        if (zhu.key.released(.MOUSE_LEFT)) drag = null else {
+            position = zhu.mouse.pos.sub(offset);
         }
         return true;
     }
 
-    if (!zhu.mouse.pressed(.LEFT)) return false;
+    if (!zhu.key.pressed(.MOUSE_LEFT)) return false;
     if (!std.meta.eql(hovered(), .body)) return false;
 
     input.mouseCaptured = true;
-    drag = zhu.window.mouse.sub(position);
+    drag = zhu.mouse.pos.sub(position);
     click = .empty;
     return true;
 }
 
 fn hovered() ?Hover {
-    const mouse = zhu.window.mouse.sub(position);
+    const mouse = zhu.mouse.pos.sub(position);
     if (zon.close.rect.contains(mouse)) return .close;
 
     const bagRect = zhu.Rect.init(.zero, zon.size);

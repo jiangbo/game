@@ -31,7 +31,7 @@ pub fn update(reg: *ecs.World, delta: f32) void {
         if (reg.has(entity, com.Enemy) and !blocked) state = .walk;
 
         reg.add(entity, com.animation.Play{
-            .index = @backingInt(state),
+            .index = state,
             .loop = true,
         });
 

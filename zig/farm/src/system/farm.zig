@@ -21,7 +21,7 @@ const event = component.event;
 const World = ecs.World;
 
 pub fn update(world: *World) void {
-    const player = world.getIdentity(Player).?;
+    const player = world.getIdentityEntity(Player).?;
     if (!world.has(player, UseFrame)) return;
 
     useItem(world, world.get(player, WantUse).?);
@@ -65,7 +65,7 @@ fn harvest(world: *World, position: zhu.Vector2) void {
 
 fn useSeed(world: *World, want: WantUse, kind: CropEnum) void {
     if (!map.canPlant(want.target)) return;
-    const inv = world.getPtr(world.entity, Inventory).?;
+    const inv = world.getResourcePtr(Inventory).?;
     if (!inv.use(want.item, 1)) return;
 
     const crop = factory.spawnCrop(world, want.target, kind);
@@ -167,29 +167,15 @@ const testMap = zhu.extend.tiled.Map{
 };
 
 fn testInventory(world: *World) *Inventory {
-    if (world.getPtr(world.entity, Inventory)) |inv| return inv;
-
-    world.entity = world.createEntity();
-    world.add(world.entity, Inventory{});
-    return world.getPtr(world.entity, Inventory).?;
+    if (world.getResourcePtr(Inventory)) |inv| return inv;
+    world.addResource(Inventory{});
+    return world.getResourcePtr(Inventory).?;
 }
 
 fn setActiveItem(world: *World, item: ItemEnum, count: u32) void {
     const inv = testInventory(world);
     inv.reset();
     _ = inv.add(item, count);
-}
-
-fn putMockImages() void {
-    const image = zhu.Image{ .size = .xy(256, 256) };
-    for (factory.zon.crops) |cropConfig| {
-        for (cropConfig.stages) |stage| {
-            zhu.assets.putImage(stage.sprite.imageId, image);
-        }
-    }
-    for (factory.zon.items) |item| {
-        zhu.assets.putImage(item.icon.imageId, image);
-    }
 }
 
 fn addProductEntity(
@@ -244,9 +230,6 @@ test "非事件帧不会结算 WantUse" {
 
 test "seedPlant 会种植并扣种子" {
     const target = zhu.Vector2.xy(32, 48);
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-    putMockImages();
     var world = World.init(std.testing.allocator);
     defer world.deinit();
     map.load(zhu.testing.allocator, &world, testMap);
@@ -428,7 +411,7 @@ test "斧头命中产出对象会播放地图资源动画" {
         .{ .offset = .xy(16, 0), .duration = 0.1 },
     };
     var animation = Animation.init(image, .xy(16, 16), &frames);
-    animation.loop = false;
+    animation.source.loop = false;
     animation.stop();
     world.add(entity, animation);
 
@@ -469,10 +452,7 @@ test "错误工具不会命中产出对象" {
 
 test "镐子击碎石头会生成掉落并清理阻挡" {
     const target = zhu.Vector2.xy(48, 48);
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
     zhu.random.init(1);
-    putMockImages();
     var world = World.init(std.testing.allocator);
     defer world.deinit();
     map.load(zhu.testing.allocator, &world, testMap);
@@ -507,9 +487,6 @@ test "镐子击碎石头会生成掉落并清理阻挡" {
 
 test "sickle 会收获成熟作物并生成掉落物" {
     const target = zhu.Vector2.xy(32, 48);
-    zhu.assets.initCaches(std.testing.allocator);
-    defer zhu.assets.deinit();
-    putMockImages();
     var world = World.init(std.testing.allocator);
     defer world.deinit();
     map.load(zhu.testing.allocator, &world, testMap);

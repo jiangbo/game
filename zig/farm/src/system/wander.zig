@@ -19,7 +19,7 @@ const Voice = component.sound.Voice;
 const arriveDistance2: f32 = 4.0;
 
 pub fn update(world: *ecs.World, delta: f32) void {
-    const talking = world.getIdentity(Dialog);
+    const talking = world.getIdentityEntity(Dialog);
     var query = world.query(.{ Position, Velocity, Actor, Wander });
     while (query.next()) |entity| {
         const position = query.get(entity, Position);

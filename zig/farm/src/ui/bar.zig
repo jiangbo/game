@@ -21,7 +21,7 @@ pub const Zon = struct {
 pub const zon: Zon = @import("bar.zon");
 
 var visible: bool = true;
-pub var click: zhu.widget.Click = .empty;
+pub var click: zhu.widget.ClickT(usize) = .empty;
 
 pub fn reset() void {
     visible = true;
@@ -48,7 +48,7 @@ pub fn update(inv: *Inventory) void {
 pub fn hover() ?usize {
     if (!visible) return null;
 
-    const mouse = zhu.window.mouse.sub(zon.position);
+    const mouse = zhu.mouse.pos.sub(zon.position);
     const slotRect = zhu.Rect.init(.zero, zon.slotSize);
     for (zon.slots, 0..) |offset, i| {
         if (slotRect.move(offset).contains(mouse)) return i;

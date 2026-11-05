@@ -8,9 +8,7 @@ var commandBuffer: [128]zhu.batch.Command = undefined;
 
 // 初始化基础图形和场景，图片尺寸用于异步加载校验。
 pub fn init(allocator: zhu.Allocator) void {
-    _ = zhu.loadImage("circle.png", .{
-        .size = .all(128),
-    });
+    _ = zhu.loadImage("circle.png", .all(128), .{});
     zhu.batch.init(&commandBuffer);
 
     scene.init(allocator);
@@ -19,8 +17,7 @@ pub fn init(allocator: zhu.Allocator) void {
 pub fn frame(delta: f32) void {
     scene.update(delta);
 
-    zhu.batch.beginDraw();
-    zhu.batch.useTarget(.black, .{});
+    zhu.batch.beginDraw(.black, .{});
     scene.draw();
     zhu.batch.endDraw();
 }

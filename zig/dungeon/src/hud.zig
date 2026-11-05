@@ -33,7 +33,7 @@ pub fn draw() void {
     zhu.batch.drawRect(.init(healthPos, healthSize), .{
         .color = .rgba(51, 51, 51, 255),
     });
-    healthSize.x *= zhu.math.percentInt(health.current, health.max);
+    healthSize.x *= zhu.percentInt(health.current, health.max);
     zhu.batch.drawRect(.init(healthPos, healthSize), .{
         .color = .rgba(76, 187, 80, 255),
     });

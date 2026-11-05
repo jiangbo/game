@@ -24,7 +24,7 @@ const playerSpeed: f32 = 60;
 const tileRange: i32 = 1;
 
 pub fn update(world: *World) void {
-    const player = world.getIdentity(Player).?;
+    const player = world.getIdentityEntity(Player).?;
 
     // 工具动作播放期间不接收新的移动和工具输入。
     if (world.has(player, Busy)) return;
@@ -34,7 +34,7 @@ pub fn update(world: *World) void {
 }
 
 pub fn draw(world: *World) void {
-    const player = world.getIdentity(Player).?;
+    const player = world.getIdentityEntity(Player).?;
     const target = world.get(player, Target).?;
     if (!target.active) return;
 
@@ -76,7 +76,7 @@ fn targetPosition(world: *World, player: Entity) ?zhu.Vector2 {
 
     const playerPos = world.get(player, Position).?;
     const playerTile = map.grid.worldToCell(playerPos);
-    const mouseWorld = zhu.camera.toWorld(zhu.window.mouse);
+    const mouseWorld = zhu.camera.toWorld(zhu.mouse.pos);
     const mouseTile = map.grid.worldToCell(mouseWorld);
 
     if (map.grid.cellToIndex(mouseTile) == null) return null;
@@ -92,7 +92,7 @@ fn updateTargetAction(world: *World, player: Entity) void {
     const target = world.getPtr(player, Target).?;
     target.active = false;
 
-    const inv = world.getPtr(world.entity, Inventory).?;
+    const inv = world.getResourcePtr(Inventory).?;
     const item = inv.active() orelse return;
     if (!isTargetItem(item)) return;
 
@@ -101,11 +101,11 @@ fn updateTargetAction(world: *World, player: Entity) void {
     target.position = position;
     target.active = true;
 
-    if (!input.mousePressed(.LEFT)) return;
+    if (!zhu.key.pressed(.MOUSE_LEFT)) return;
     const actor = world.getPtr(player, Actor).?;
     const playerPos = world.get(player, Position).?;
     // 朝向按点击位置计算，目标格只负责工具结算。
-    const mouseWorld = zhu.camera.toWorld(zhu.window.mouse);
+    const mouseWorld = zhu.camera.toWorld(zhu.mouse.pos);
     const direction = mouseWorld.sub(playerPos);
     if (!direction.approxEqual(.zero)) {
         actor.facing = facingFromDirection(direction);
@@ -145,11 +145,9 @@ fn facingFromDirection(direction: zhu.Vector2) Facing {
 }
 
 fn testInventory(world: *World) *Inventory {
-    if (world.getPtr(world.entity, Inventory)) |inv| return inv;
-
-    world.entity = world.createEntity();
-    world.add(world.entity, Inventory{});
-    return world.getPtr(world.entity, Inventory).?;
+    if (world.getResourcePtr(Inventory)) |inv| return inv;
+    world.addResource(Inventory{});
+    return world.getResourcePtr(Inventory).?;
 }
 
 fn setActiveItem(world: *World, item: ItemEnum, count: u32) void {
@@ -170,8 +168,8 @@ fn addTestPlayer(world: *World, position: zhu.Vector2) Entity {
 const testTarget = zhu.Vector2.xy(32, 48);
 
 test "玩家控制会把方向键写入速度" {
-    zhu.input.reset();
-    defer zhu.input.reset();
+    zhu.window.resetInput();
+    defer zhu.window.resetInput();
 
     zhu.key.set(.D, true);
     zhu.key.set(.W, true);
@@ -197,8 +195,8 @@ test "玩家控制会把方向键写入速度" {
 }
 
 test "忙碌状态会跳过输入并保持动作" {
-    zhu.input.reset();
-    defer zhu.input.reset();
+    zhu.window.resetInput();
+    defer zhu.window.resetInput();
 
     zhu.key.set(.D, true);
 
@@ -219,11 +217,11 @@ test "忙碌状态会跳过输入并保持动作" {
 }
 
 test "目标框只在工具或种子选中时显示" {
-    zhu.input.reset();
-    defer zhu.input.reset();
+    zhu.window.resetInput();
+    defer zhu.window.resetInput();
 
     zhu.camera.init(.xy(640, 360));
-    zhu.window.mouse = .xy(32, 48);
+    zhu.mouse.pos = .xy(32, 48);
 
     var world = World.init(std.testing.allocator);
     defer world.deinit();
@@ -240,15 +238,15 @@ test "目标框只在工具或种子选中时显示" {
 }
 
 test "点击目标只写入使用意图" {
-    zhu.input.reset();
-    defer zhu.input.reset();
+    zhu.window.resetInput();
+    defer zhu.window.resetInput();
 
     zhu.camera.init(.xy(640, 360));
-    zhu.window.mouse = testTarget;
+    zhu.mouse.pos = testTarget;
     var world = World.init(std.testing.allocator);
     defer world.deinit();
     setActiveItem(&world, .hoe, 1);
-    zhu.mouse.set(.LEFT, true);
+    zhu.key.set(.MOUSE_LEFT, true);
 
     const player = addTestPlayer(&world, .xy(24, 40));
 

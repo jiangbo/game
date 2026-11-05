@@ -120,7 +120,7 @@ pub const Stats = struct {
 pub const Animation = zhu.graphics.Animation;
 pub const animation = struct {
     pub const Finished = struct {};
-    pub const Play = struct { index: u8, loop: bool = false };
+    pub const Play = struct { index: StateEnum, loop: bool = false };
 };
 
 ///

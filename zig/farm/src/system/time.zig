@@ -9,8 +9,8 @@ const Speed = @import("../resource/Speed.zig");
 const event = component.event;
 
 pub fn update(world: *ecs.World, delta: f32) void {
-    const clock = world.getPtr(world.entity, Clock).?;
-    const speed = world.get(world.entity, Speed).?;
+    const clock = world.getResourcePtr(Clock).?;
+    const speed = world.getResourcePtr(Speed).?.*;
 
     world.clearEvent(event.HourChanged);
     world.clearEvent(event.DayChanged);
@@ -67,11 +67,9 @@ fn currentPeriod(hour: u8) component.time.Period {
 test "时间推进到整点会发出小时事件" {
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
-
-    world.entity = world.createEntity();
-    world.add(world.entity, Clock{ .hour = 6, .minute = 59.0 });
-    world.add(world.entity, Speed{});
-    const clock = world.getPtr(world.entity, Clock).?;
+    world.addResource(Clock{ .hour = 6, .minute = 59.0 });
+    world.addResource(Speed{});
+    const clock = world.getResourcePtr(Clock).?;
     update(&world, 0.2);
 
     try std.testing.expectEqual(7, clock.hour);
@@ -84,15 +82,13 @@ test "时间推进到整点会发出小时事件" {
 test "时间推进跨天会发出新一天事件" {
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
-
-    world.entity = world.createEntity();
-    world.add(world.entity, Clock{
+    world.addResource(Clock{
         .hour = 23,
         .minute = 59.0,
         .period = .night,
     });
-    world.add(world.entity, Speed{});
-    const clock = world.getPtr(world.entity, Clock).?;
+    world.addResource(Speed{});
+    const clock = world.getResourcePtr(Clock).?;
     update(&world, 0.2);
 
     try std.testing.expectEqual(2, clock.day);
@@ -110,15 +106,13 @@ test "时间推进跨天会发出新一天事件" {
 test "按小时推进会清零分钟并逐小时发事件" {
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
-
-    world.entity = world.createEntity();
-    world.add(world.entity, Clock{
+    world.addResource(Clock{
         .hour = 22,
         .minute = 37.0,
         .period = .night,
     });
-    world.add(world.entity, Speed{});
-    const clock = world.getPtr(world.entity, Clock).?;
+    world.addResource(Speed{});
+    const clock = world.getResourcePtr(Clock).?;
     world.addEvent(event.Rest{ .hours = 3 });
     update(&world, 0);
 
@@ -137,15 +131,13 @@ test "按小时推进会清零分钟并逐小时发事件" {
 test "时段跨过边界会发出时段事件" {
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
-
-    world.entity = world.createEntity();
-    world.add(world.entity, Clock{
+    world.addResource(Clock{
         .hour = 7,
         .minute = 59.0,
         .period = .dawn,
     });
-    world.add(world.entity, Speed{});
-    const clock = world.getPtr(world.entity, Clock).?;
+    world.addResource(Speed{});
+    const clock = world.getResourcePtr(Clock).?;
     update(&world, 0.2);
 
     try std.testing.expectEqual(currentPeriod(8), clock.period);

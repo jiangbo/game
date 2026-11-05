@@ -15,11 +15,11 @@ const Animation = component.actor.Animation;
 const Shape = component.motion.Shape;
 
 pub fn update(world: *World) void {
-    const target = world.getIdentity(Interact) orelse return;
+    const target = world.getIdentityEntity(Interact) orelse return;
     if (!world.has(target, Chest)) return;
 
     const chest = world.getPtr(target, Chest).?;
-    const notice = world.getPtr(world.entity, Notice).?;
+    const notice = world.getResourcePtr(Notice).?;
 
     // 宝箱奖励允许部分领取，背包满时剩余数量留在宝箱里。
     var taken = Chest{ .items = .initFill(0) };
@@ -27,7 +27,7 @@ pub fn update(world: *World) void {
         const count = chest.items.get(itemType);
         if (count == 0) continue;
 
-        const inv = world.getPtr(world.entity, Inventory).?;
+        const inv = world.getResourcePtr(Inventory).?;
         const remaining = inv.add(itemType, count);
         chest.items.set(itemType, remaining);
         taken.items.set(itemType, count - remaining);
@@ -101,10 +101,9 @@ fn addTestChest(world: *World, itemType: ItemEnum, count: u32) ecs.Entity {
 }
 
 fn addTestInventory(world: *World) *Inventory {
-    world.entity = world.createEntity();
-    world.add(world.entity, Inventory{});
-    world.add(world.entity, Notice{});
-    return world.getPtr(world.entity, Inventory).?;
+    world.addResource(Inventory{});
+    world.addResource(Notice{});
+    return world.getResourcePtr(Inventory).?;
 }
 
 test "chest 交互会打开宝箱并移除碰撞" {
@@ -120,7 +119,7 @@ test "chest 交互会打开宝箱并移除碰撞" {
     const chestState = world.get(chest, Chest).?;
     const animation = world.get(chest, Animation).?;
 
-    try std.testing.expectEqual(chest, world.getIdentity(Interact).?);
+    try std.testing.expectEqual(chest, world.getIdentityEntity(Interact).?);
     try std.testing.expect(chestState.opened);
     try std.testing.expectEqual(0, chestState.items.get(.potato));
     try std.testing.expectEqual(.potato, inv.store.stacks[0].item);
@@ -147,5 +146,5 @@ test "chest 背包满时奖励留在宝箱里" {
     try std.testing.expect(!result.opened);
     try std.testing.expectEqual(2, result.items.get(.potato));
     try std.testing.expect(world.has(chest, Shape));
-    try std.testing.expectEqual(chest, world.getIdentity(Interact).?);
+    try std.testing.expectEqual(chest, world.getIdentityEntity(Interact).?);
 }

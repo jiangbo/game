@@ -13,9 +13,7 @@ pub fn update(reg: *ecs.World, _: f32) void {
         const ranged = reg.has(entity, com.attack.Ranged) and
             !reg.has(entity, com.motion.BlockBy);
         const attack: com.StateEnum = if (ranged) .ranged else .attack;
-        reg.add(entity, com.animation.Play{
-            .index = @backingInt(attack),
-        });
+        reg.add(entity, com.animation.Play{ .index = attack });
 
         // 设置攻击锁定，不能进行移动
         reg.add(entity, com.attack.Lock{});

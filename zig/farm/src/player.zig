@@ -18,7 +18,7 @@ pub fn spawn(world: *World, targetId: i32) void {
 }
 
 pub fn capture(world: *World, mapId: component.map.Id) storage.Player {
-    const entity = world.getIdentity(actor.Player).?;
+    const entity = world.getIdentityEntity(actor.Player).?;
     const position = world.get(entity, Position).?;
     const state = world.get(entity, actor.Actor) orelse actor.Actor{};
 
@@ -30,7 +30,7 @@ pub fn capture(world: *World, mapId: component.map.Id) storage.Player {
 }
 
 pub fn restore(world: *World, data: storage.Player) void {
-    const entity = world.getIdentity(actor.Player).?;
+    const entity = world.getIdentityEntity(actor.Player).?;
     const position = world.getPtr(entity, Position).?;
     const velocity = world.getPtr(entity, component.motion.Velocity).?;
     const target = world.getPtr(entity, component.ui.Target).?;

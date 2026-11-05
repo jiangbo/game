@@ -11,7 +11,7 @@ const Velocity = component.motion.Velocity;
 const Wander = component.actor.Wander;
 
 pub fn update(world: *ecs.World, delta: f32) void {
-    const clock = world.get(world.entity, Clock).?;
+    const clock = world.getResourcePtr(Clock).?.*;
     if (clock.period == .night) {
         return updateSleep(world);
     }
@@ -103,8 +103,7 @@ fn stopMoving(world: *ecs.World, entity: ecs.Entity) void {
 test "夜晚有生活状态的角色会睡觉并停止移动" {
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
-    world.entity = world.createEntity();
-    world.add(world.entity, Clock{ .period = .night });
+    world.addResource(Clock{ .period = .night });
 
     const entity = world.createEntity();
     world.add(entity, Actor{ .action = .walk });
@@ -129,8 +128,7 @@ test "天亮后退出睡眠并重置进食计时" {
 
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
-    world.entity = world.createEntity();
-    world.add(world.entity, Clock{ .period = .day });
+    world.addResource(Clock{ .period = .day });
 
     const entity = world.createEntity();
     world.add(entity, Actor{ .action = .sleep });
@@ -154,8 +152,7 @@ test "进食冷却结束后进入进食状态" {
 
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
-    world.entity = world.createEntity();
-    world.add(world.entity, Clock{ .period = .day });
+    world.addResource(Clock{ .period = .day });
 
     const entity = world.createEntity();
     world.add(entity, Actor{});
@@ -182,8 +179,7 @@ test "进食结束后回到普通状态" {
 
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
-    world.entity = world.createEntity();
-    world.add(world.entity, Clock{ .period = .day });
+    world.addResource(Clock{ .period = .day });
 
     const entity = world.createEntity();
     world.add(entity, Actor{ .action = .eat });
@@ -205,8 +201,7 @@ test "进食结束后回到普通状态" {
 test "睡觉优先于进食" {
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
-    world.entity = world.createEntity();
-    world.add(world.entity, Clock{ .period = .night });
+    world.addResource(Clock{ .period = .night });
 
     const entity = world.createEntity();
     world.add(entity, Actor{ .action = .eat });
@@ -226,8 +221,7 @@ test "睡觉优先于进食" {
 test "睡觉和进食没有背面帧时改用正面方向" {
     var world = ecs.World.init(std.testing.allocator);
     defer world.deinit();
-    world.entity = world.createEntity();
-    world.add(world.entity, Clock{ .period = .night });
+    world.addResource(Clock{ .period = .night });
 
     const sleepEntity = world.createEntity();
     world.add(sleepEntity, Actor{ .facing = .up });
@@ -242,7 +236,7 @@ test "睡觉和进食没有背面帧时改用正面方向" {
     world.add(eatEntity, Actor{ .facing = .up });
     world.add(eatEntity, Life{ .timer = 0 });
 
-    world.getPtr(world.entity, Clock).?.period = .day;
+    world.getResourcePtr(Clock).?.period = .day;
     update(&world, 0.1);
 
     try std.testing.expectEqual(.down, world.get(eatEntity, Actor).?.facing);

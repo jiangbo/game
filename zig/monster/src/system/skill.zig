@@ -34,7 +34,7 @@ fn updateCast(reg: *ecs.World) void {
         // 盾御技能激活时切换防御姿态动画
         if (skill.id == .shield) {
             reg.add(entity, com.animation.Play{
-                .index = @backingInt(com.StateEnum.walk),
+                .index = .walk,
                 .loop = true,
             });
         }
@@ -62,7 +62,7 @@ fn updateTimer(reg: *ecs.World, delta: f32) void {
             }
             if (skill.id == .shield) {
                 reg.add(entity, com.animation.Play{
-                    .index = @backingInt(com.StateEnum.idle),
+                    .index = .idle,
                     .loop = true,
                 });
             }

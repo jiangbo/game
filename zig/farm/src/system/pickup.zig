@@ -20,9 +20,9 @@ const arcHeight: f32 = 6;
 pub fn update(world: *World, delta: f32) void {
     updateMotion(world, delta);
 
-    const player = world.getIdentity(Player).?;
+    const player = world.getIdentityEntity(Player).?;
     const playerShape = worldShape(world, player) orelse return;
-    const notice = world.getPtr(world.entity, Notice).?;
+    const notice = world.getResourcePtr(Notice).?;
 
     var query = world.query(.{ Pickup, Position, Shape }).reverse();
     while (query.next()) |entity| {
@@ -32,7 +32,7 @@ pub fn update(world: *World, delta: f32) void {
         const pickupShape = worldShape(world, entity) orelse continue;
         if (!playerShape.intersect(pickupShape)) continue;
 
-        const inv = world.getPtr(world.entity, Inventory).?;
+        const inv = world.getResourcePtr(Inventory).?;
         const remaining = inv.add(pickup.item, pickup.count);
         const taken = pickup.count - remaining;
         pickup.count = remaining;
@@ -87,10 +87,9 @@ fn worldShape(world: *World, entity: ecs.Entity) ?Shape {
 }
 
 fn addTestInventory(world: *World) *Inventory {
-    world.entity = world.createEntity();
-    world.add(world.entity, Inventory{});
-    world.add(world.entity, Notice{});
-    return world.getPtr(world.entity, Inventory).?;
+    world.addResource(Inventory{});
+    world.addResource(Notice{});
+    return world.getResourcePtr(Inventory).?;
 }
 
 test "pickup 飞散期间不会被拾取" {

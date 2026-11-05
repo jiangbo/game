@@ -5,10 +5,10 @@
         .cell = 16,
     },
     .backgroundColor = .{
-        .r = 0.2509804,
-        .g = 0.5647059,
-        .b = 0.84313726,
-        .a = 1,
+        .r = 64,
+        .g = 144,
+        .b = 215,
+        .a = 255,
     },
     .layers = .{
         .{
@@ -6579,7 +6579,7 @@
             .height = 0,
             .offset = .{ .x = 0, .y = 0 },
             .data = .{},
-            .objects = .{.{
+            .objects = .{ .{
                 .id = 26,
                 .gid = 0,
                 .name = "",
@@ -6619,7 +6619,7 @@
                     .rotation = false,
                     .padding = 0,
                 },
-            }},
+            } },
             .parallaxX = 1,
             .parallaxY = 1,
             .repeatX = false,

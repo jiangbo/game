@@ -14,7 +14,7 @@ pub fn open(mode: Mode) void {
         .title => &.{ 1, 2, 3 },
         .play => &.{},
     };
-    menu.position = zhu.window.size.sub(panelSize).scale(0.5);
+    menu.position = zhu.camera.size.sub(panelSize).scale(0.5);
 }
 
 pub fn update() ?Request {
@@ -36,12 +36,12 @@ pub fn update() ?Request {
 
 pub fn draw() void {
     // 全屏覆盖
-    const overlayRect = zhu.Rect.init(.zero, zhu.window.size);
-    zhu.batch.drawRect(overlayRect, .{ .color = .gray(0, 0.35) });
+    const overlayRect = zhu.Rect.init(.zero, zhu.camera.size);
+    zhu.batch.drawRect(overlayRect, .{ .color = .gray(0, 89) });
 
     // 暂停面板背景
     const back = zhu.Rect.init(menu.position, panelSize);
-    zhu.batch.drawRect(back, .{ .color = .gray(0, 0.45) });
+    zhu.batch.drawRect(back, .{ .color = .gray(0, 115) });
 
     menu.draw();
 

@@ -7,7 +7,7 @@ pub const Position = zhu.Vector2;
 pub const motion = struct {
     pub const Velocity = struct { value: Vector2 = .zero };
 
-    pub const Shape = zhu.math.Shape;
+    pub const Shape = zhu.Shape;
     pub const Blocking = struct {};
 };
 
@@ -145,7 +145,7 @@ pub const farm = struct {
 pub const ui = struct {
     pub const Target = struct {
         position: zhu.Vector2 = .zero,
-        color: zhu.Color = .rgba(0, 1, 0, 0.2),
+        color: zhu.Color = .rgba(0, 255, 0, 51),
         active: bool = false,
     };
 };
@@ -165,7 +165,7 @@ pub const item = struct {
         stone,
     };
 
-    pub const Stack = zhu.widget.StackT(ItemEnum);
+    pub const Stack = zhu.extend.bag.StackT(ItemEnum);
     // Product 只表示动作完成后产出的物品，生命值单独放在 Health。
     pub const Product = struct { value: Stack };
     pub const Health = struct { value: u8 };
@@ -195,14 +195,14 @@ pub const light = struct {
     pub const Point = struct {
         radius: f32 = 96,
         offset: zhu.Vector2 = .zero,
-        color: zhu.Color = .rgba(1.0, 0.72, 0.34, 1.0),
+        color: zhu.Color = .rgba(255, 184, 87, 255),
         intensity: f32 = 1.0,
     };
 
     pub const Spot = struct {
         radius: f32 = 128,
         direction: zhu.Vector2 = .xy(0, -1),
-        color: zhu.Color = .rgba(1.0, 0.72, 0.34, 1.0),
+        color: zhu.Color = .rgba(255, 184, 87, 255),
         intensity: f32 = 1.0,
     };
 

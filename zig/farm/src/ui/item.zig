@@ -22,7 +22,7 @@ pub fn drawTooltip(itemType: ItemEnum) void {
     const item = factory.itemConfig(itemType);
 
     const option = tooltip.text;
-    const categoryColor = zhu.Color.gray(0.2, 1).toSrgb();
+    const categoryColor = zhu.Color.gray(51, 255).toSrgb();
     const categoryOption = option.with(.color, categoryColor);
     const lines = [_]zhu.text.Line{
         .{ .text = item.name, .option = option },
@@ -34,7 +34,7 @@ pub fn drawTooltip(itemType: ItemEnum) void {
         .add(tooltip.padding.scale(2)).max(tooltip.minSize);
     // 判方向用最大宽度，避免描述长短变化导致 tooltip 左右跳。
     const position = zhu.widget.popupPosition(.{
-        .anchor = zhu.window.mouse,
+        .anchor = zhu.mouse.pos,
         .size = size,
         .maxSize = .{ .x = 200, .y = size.y },
         .offset = tooltip.offset,
@@ -60,6 +60,6 @@ pub fn drawIcon(itemType: ItemEnum, position: zhu.Vector2) void {
 }
 
 pub fn drawCount(count: u32, rect: zhu.Rect) void {
-    const pos = rect.max().sub(.square(1));
+    const pos = rect.max().sub(.all(1));
     zhu.text.drawFmt("{d}", .{count}, pos, .{ .anchor = .one });
 }

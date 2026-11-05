@@ -180,7 +180,7 @@ fn drawPrepare(playerEnum: com.PlayerEnum) void {
 
     // 绘制准备单位精灵（合法绿色，非法红色）
     const size = template.image.size;
-    const image = zhu.assets.loadImage(template.image.path, .{ .size = size });
+    const image = zhu.assets.loadImage(template.image.path, size, .{});
     const sub = image.sub(.init(.zero, template.size));
     zhu.batch.drawImage(sub, mousePos.add(template.offset), .{
         .color = if (found != null) .green else .red,
