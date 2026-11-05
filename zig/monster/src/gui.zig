@@ -12,7 +12,7 @@ const scene = @import("scene.zig");
 const title = @import("title.zig");
 
 pub fn init() void {
-    sk.imgui.setup(.{
+    zhu.imgui.setup(.{
         .logger = .{ .func = sk.log.func },
         .no_default_font = true,
         .ini_filename = "assets/imgui.ini",
@@ -34,11 +34,11 @@ pub fn init() void {
 }
 
 pub fn event(ev: *const zhu.window.Event) void {
-    _ = sk.imgui.handleEvent(ev.*);
+    _ = zhu.imgui.handleEvent(ev.*);
 }
 
 pub fn update(reg: *ecs.World, delta: f32) void {
-    sk.imgui.newFrame(.{
+    zhu.imgui.newFrame(.{
         .width = sk.app.width(),
         .height = sk.app.height(),
         .delta_time = delta,
@@ -472,7 +472,7 @@ fn renderSavePanel(allocator: zhu.Allocator) void {
 
 pub fn draw(reg: *ecs.World) void {
     _ = reg;
-    sk.imgui.draw();
+    zhu.imgui.draw();
 }
 
 fn renderTitleUI() void {
@@ -650,8 +650,4 @@ fn renderEndScene() void {
         gui.igSetWindowFontScale(1.0);
     }
     gui.igEnd();
-}
-
-pub fn deinit() void {
-    sk.imgui.shutdown();
 }

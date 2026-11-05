@@ -36,6 +36,7 @@ pub fn init(allocator: zhu.Allocator) void {
 }
 
 pub fn event(ev: *const zhu.window.Event) void {
+    zhu.window.handleEvent(ev);
     gui.event(ev);
 }
 
@@ -71,7 +72,7 @@ pub fn frame(delta: f32) void {
             }
         },
     }
-    zhu.sokol.imgui.flush();
+    zhu.imgui.flush();
     zhu.batch.flush();
     gui.draw(&registry);
     zhu.batch.endDraw();
@@ -82,7 +83,7 @@ pub fn deinit(allocator: zhu.Allocator) void {
     hud.deinit();
     title.deinit(allocator);
     ctx.deinit(allocator);
-    gui.deinit();
+    zhu.imgui.shutdown();
     registry.deinit();
     zhu.audio.deinit();
 }

@@ -14,6 +14,7 @@ pub fn init(allocator: zhu.Allocator) void {
 }
 
 pub fn event(evt: *const zhu.window.Event) void {
+    zhu.window.handleEvent(evt);
     scene.handleEvent(evt);
 }
 
