@@ -48,33 +48,33 @@ var objects: std.ArrayList(map.Object) = undefined;
 pub fn init(obj: std.ArrayList(map.Object)) void {
     objects = obj;
 
-    const gemImage = getImage(@intFromEnum(map.ObjectEnum.gem)).?;
+    const gemImage = getImage(@backingInt(map.ObjectEnum.gem)).?;
     gemAnimation = .init(gemImage, .xy(15, 13), &gemFrames);
 
-    const cherryImage = getImage(@intFromEnum(map.ObjectEnum.cherry)).?;
+    const cherryImage = getImage(@backingInt(map.ObjectEnum.cherry)).?;
     cherryAnimation = .init(cherryImage, .xy(21, 21), &cherryFrames);
 
-    const opossumImage = getImage(@intFromEnum(map.ObjectEnum.opossum)).?;
+    const opossumImage = getImage(@backingInt(map.ObjectEnum.opossum)).?;
     opossumAnimation = .init(opossumImage, .xy(36, 28), &opossumFrames);
 
-    const eagleImage = getImage(@intFromEnum(map.ObjectEnum.eagle)).?;
+    const eagleImage = getImage(@backingInt(map.ObjectEnum.eagle)).?;
     eagleAnimation = .init(eagleImage, .xy(40, 41), &eagleFrames);
 
-    const frogImage = getImage(@intFromEnum(map.ObjectEnum.frog)).?;
+    const frogImage = getImage(@backingInt(map.ObjectEnum.frog)).?;
     frogAnimations.set(.idle, .init(frogImage, .xy(35, 32), &frogIdleFrames));
     frogAnimations.set(.jump, .init(frogImage, .xy(35, 32), &frogJumpFrames));
     frogAnimations.set(.fall, .init(frogImage, .xy(35, 32), &frogFallFrames));
 
     const itemImage = zhu.getImage("textures/FX/item-feedback.png").?;
     itemAnimation = .init(itemImage, .xy(32, 32), &itemFrames);
-    itemAnimation.loop = false;
+    itemAnimation.source.loop = false;
     const deadImage = zhu.getImage("textures/FX/enemy-deadth.png").?;
     deadAnimation = .init(deadImage, .xy(40, 41), &deadFrames);
-    deadAnimation.loop = false;
+    deadAnimation.source.loop = false;
     effectAnimations = .initBuffer(&effectArray);
 
-    skullImage = getImage(@intFromEnum(map.ObjectEnum.skull)).?;
-    spikeImage = getImage(@intFromEnum(map.ObjectEnum.spikeTop)).?;
+    skullImage = getImage(@backingInt(map.ObjectEnum.skull)).?;
+    spikeImage = getImage(@backingInt(map.ObjectEnum.spikeTop)).?;
 
     for (objects.items) |*object| {
         switch (object.type) {

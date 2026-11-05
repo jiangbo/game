@@ -18,7 +18,7 @@ const Background = struct {
     fn draw(self: *const Background, y: f32) void {
         // 填满 X 轴
         var x: f32 = self.offset;
-        while (x < zhu.window.size.x) : (x += self.image.size.x) {
+        while (x < zhu.camera.size.x) : (x += self.image.size.x) {
             zhu.batch.drawImage(self.image, .xy(@round(x), y), .{});
         }
     }
@@ -41,7 +41,7 @@ pub fn update(delta: f32) void {
     mid.update(delta, 60);
 
     if (showHelp) {
-        if (zhu.key.pressed(.ESCAPE) or zhu.mouse.pressed(.LEFT)) {
+        if (zhu.key.pressed(.ESCAPE) or zhu.key.pressed(.MOUSE_LEFT)) {
             showHelp = false;
         }
         return;
@@ -62,7 +62,7 @@ pub fn draw() void {
     far.draw(0);
     mid.draw(96);
 
-    const center = zhu.window.size.scale(0.5);
+    const center = zhu.camera.size.scale(0.5);
     const titleImage = zhu.getImage("textures/UI/title-screen.png").?;
     batch.drawImage(titleImage, center.addY(-50), .{
         .scale = .xy(2, 2),
@@ -71,10 +71,10 @@ pub fn draw() void {
 
     menu.draw();
     // 底部信息栏
-    const strPos: zhu.Vector2 = .xy(center.x, zhu.window.size.y - 26);
+    const strPos: zhu.Vector2 = .xy(center.x, zhu.camera.size.y - 26);
     zhu.text.draw("SunnyLand Credits: XXX - 2025", strPos, .{
         .anchor = .center,
-        .color = .rgba(0.8, 0.8, 0.8, 1),
+        .color = .rgba(204, 204, 204, 255),
     });
     if (!showHelp) return;
 

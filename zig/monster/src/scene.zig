@@ -1,10 +1,9 @@
-const std = @import("std");
+const ecs = @import("ecs");
 const zhu = @import("zhu");
 
 const map = @import("map.zig");
 const com = @import("component.zig");
 const spawn = @import("spawn.zig");
-const battle = @import("battle.zig");
 const hud = @import("hud.zig");
 const ctx = @import("context.zig");
 
@@ -28,40 +27,41 @@ var gameOverTriggered: bool = false;
 
 pub fn init() void {}
 
-pub fn deinit() void {
-    spawn.deinit();
+pub fn deinit(allocator: zhu.Allocator) void {
+    spawn.deinit(allocator);
 }
 
-pub fn enter() void {
+pub fn enter(allocator: zhu.Allocator) void {
     clearTimer = null;
     gameOverTriggered = false;
     ctx.resetBattle();
-    map.init(ctx.levelIndex);
+    map.init(allocator, ctx.levelIndex);
     spawn.init();
-    zhu.audio.playMusic("assets/audio/4 Battle Track INTRO TomMusic.ogg");
+    zhu.audio.playMusic("audio/4 Battle Track INTRO TomMusic.ogg");
 }
 
-pub fn exit() void {
-    map.deinit();
+pub fn exit(allocator: zhu.Allocator) void {
+    map.deinit(allocator);
 }
 
-pub fn restart(reg: *zhu.ecs.Registry) void {
+pub fn restart(reg: *ecs.World) void {
     clearTimer = null;
     gameOverTriggered = false;
     ctx.resetBattle();
     reg.reset();
     spawn.changeLevel(ctx.levelIndex);
-    map.init(ctx.levelIndex);
+    map.deinit(reg.allocator);
+    map.init(reg.allocator, ctx.levelIndex);
 }
 
-pub fn update(reg: *zhu.ecs.Registry, delta: f32) void {
+pub fn update(reg: *ecs.World, delta: f32) void {
     system.selection.update(reg, delta); // 悬停、选中与范围显示状态
     if (!ctx.uiWantCaptureMouse) {
-        if (zhu.window.mouse.pressed(.LEFT)) {
+        if (zhu.key.pressed(.MOUSE_LEFT)) {
             if (ctx.selectedUnit()) |unit| {
                 spawn.tryDeployPlayer(reg, unit);
             }
-        } else if (zhu.window.mouse.pressed(.RIGHT)) {
+        } else if (zhu.key.pressed(.MOUSE_RIGHT)) {
             if (ctx.selected != null) ctx.selected = null;
         }
     }
@@ -76,6 +76,15 @@ pub fn update(reg: *zhu.ecs.Registry, delta: f32) void {
     system.skill.update(reg, delta); // 技能系统
     system.target.update(reg, delta); // 目标系统
     system.motion.update(reg, delta); // 移动系统
+
+    // 到达终点后立即移除，避免继续参加战斗或在编号复用后消费旧事件。
+    var arrived = reg.query(.{com.Arrived}).reverse();
+    while (arrived.next()) |entity| {
+        ctx.enemyArrivedCount += 1;
+        ctx.homeHealth -= 1;
+        system.death.destroy(reg, entity);
+    }
+
     system.state.update(reg, delta); // 状态系统
     system.projectile.update(reg, delta); // 投射物系统
     system.attack.update(reg, delta); // 攻击系统
@@ -83,14 +92,6 @@ pub fn update(reg: *zhu.ecs.Registry, delta: f32) void {
     system.death.update(reg, delta); // 死亡系统
     system.facing.update(reg, delta); // 面向系统
     system.animation.update(reg, delta); // 动画系统
-
-    // 处理到达终点的敌人
-    for (reg.getEvents(zhu.ecs.Entity).items) |entity| {
-        ctx.enemyArrivedCount += 1;
-        ctx.homeHealth -= 1;
-        reg.destroyEntity(entity);
-    }
-    reg.clearEvent(zhu.ecs.Entity);
 
     // 通关奖励积分 + 启动延迟计时器
     if (!ctx.levelClear and ctx.isLevelClear()) {
@@ -101,7 +102,7 @@ pub fn update(reg: *zhu.ecs.Registry, delta: f32) void {
 
     // 通关延迟倒计时
     if (clearTimer) |*t| {
-        if (t.isFinishedOnceUpdate(delta)) {
+        if (t.updateFinished(delta)) {
             clearTimer = null;
             if (!spawn.hasNextLevel(ctx.levelIndex)) {
                 ctx.win = true;
@@ -120,7 +121,7 @@ pub fn update(reg: *zhu.ecs.Registry, delta: f32) void {
     }
 }
 
-pub fn draw(reg: *zhu.ecs.Registry) void {
+pub fn draw(reg: *ecs.World) void {
     map.draw();
 
     reg.sort(com.Position, struct {
@@ -129,14 +130,14 @@ pub fn draw(reg: *zhu.ecs.Registry) void {
         }
     }.lessThan);
 
-    var view = reg.view(.{ com.Position, com.Sprite });
+    var view = reg.queryBy(com.Position, .{com.Sprite}, .{});
     while (view.next()) |entity| {
-        const sprite = view.get(entity, com.Sprite);
-        const position = view.get(entity, com.Position);
+        const sprite = reg.get(entity, com.Sprite).?;
+        const position = reg.get(entity, com.Position).?;
         const pos = position.add(sprite.offset);
 
         zhu.batch.drawImage(sprite.image, pos, .{
-            .flipX = sprite.flip,
+            .uvRect = sprite.image.uvFlip(sprite.flip, false),
             .size = sprite.size,
         });
     }

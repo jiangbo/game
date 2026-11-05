@@ -9,8 +9,6 @@ const title = @import("title.zig");
 const world = @import("world.zig");
 
 var isHelp = false;
-var isDebug = false;
-var vertexBuffer: []batch.Vertex = undefined;
 var commandBuffer: [64]batch.Command = undefined;
 
 const atlas: zhu.Atlas = @import("zon/atlas.zon");
@@ -19,24 +17,16 @@ const sceneType = enum { title, world };
 var currentScene: sceneType = .title;
 
 pub fn init(allocator: zhu.Allocator) void {
-    zhu.text.init(@import("zon/font.zon"));
-    zhu.text.changeFontSize(32);
-
-    vertexBuffer = allocator.alloc(batch.Vertex, 5000);
-    batch.init(vertexBuffer, &commandBuffer);
-    zhu.assets.loadAtlas(atlas);
-    batch.circleImage = zhu.getImage("circle.png").?;
-    const size = batch.circleImage.size;
-    const rect = zhu.Rect.init(.zero, size).centerScale(0.25);
-    batch.whiteImage = batch.circleImage.sub(rect);
+    zhu.text.init(@import("zon/font.zon"), .{ .size = 32 });
+    zhu.loadAtlas(atlas, .nearest);
+    batch.init(&commandBuffer);
 
     world.init(allocator);
     title.init();
 }
 
-pub fn deinit(allocator: zhu.Allocator) void {
+pub fn deinit() void {
     world.deinit();
-    allocator.free(vertexBuffer);
 }
 
 pub fn changeScene(newScene: sceneType) void {
@@ -49,7 +39,7 @@ pub fn changeScene(newScene: sceneType) void {
 
 pub fn update(delta: f32) void {
     if (zhu.key.released(.H)) isHelp = !isHelp;
-    if (zhu.key.released(.X)) isDebug = !isDebug;
+    zhu.extend.debug.toggle(.X);
 
     if (zhu.key.held(.LEFT_ALT) and zhu.key.released(.ENTER)) {
         return window.toggleFullScreen();
@@ -70,7 +60,7 @@ pub fn draw() void {
         .title => title.draw(),
         .world => world.draw(),
     }
-    if (isHelp) drawHelpInfo() else if (isDebug) drawDebugInfo();
+    if (isHelp) drawHelpInfo() else zhu.extend.debug.draw(.{});
 }
 
 fn drawHelpInfo() void {
@@ -85,6 +75,3 @@ fn drawHelpInfo() void {
 }
 
 var debutTextCount: usize = 0;
-fn drawDebugInfo() void {
-    zhu.debug.draw(&.{});
-}

@@ -12,7 +12,7 @@ var mouse: zhu.window.Cursor = .CUSTOM_1;
 var mouseTimer: zhu.Timer = .init(0.3); // 鼠标切换时间
 
 pub fn init(allocator: zhu.Allocator) void {
-    zhu.camera.bound = zhu.window.size.scale(3); // 设置世界大小
+    zhu.camera.bound = zhu.camera.size.scale(3); // 设置世界大小
 
     player.init();
     enemy.init(allocator);

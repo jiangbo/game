@@ -28,12 +28,12 @@
         .size = .{ .x = 192, .y = 192 },
         .offset = .{ .x = -96, .y = -128 },
         .image = .{
-            .path = "assets/textures/Units/Warrior.png",
+            .path = "textures/Units/Warrior.png",
             .size = .{ .x = 1536, .y = 576 },
         },
         .sounds = .{.{
             .action = .hit,
-            .path = "assets/audio/Sword Impact Hit 1.ogg",
+            .path = "audio/Sword Impact Hit 1.ogg",
         }},
         .animations = .{
             .{ // idle
@@ -94,17 +94,17 @@
         .size = .{ .x = 192, .y = 192 },
         .offset = .{ .x = -96, .y = -128 },
         .image = .{
-            .path = "assets/textures/Units/Archer.png",
+            .path = "textures/Units/Archer.png",
             .size = .{ .x = 1536, .y = 384 },
         },
         .sounds = .{
             .{
                 .action = .emit,
-                .path = "assets/audio/Bow Attack.ogg",
+                .path = "audio/Bow Attack.ogg",
             },
             .{
                 .action = .hit,
-                .path = "assets/audio/Bow Impact Hit 1.ogg",
+                .path = "audio/Bow Impact Hit 1.ogg",
             },
         },
         .animations = .{
@@ -167,12 +167,12 @@
         .size = .{ .x = 320, .y = 320 },
         .offset = .{ .x = -160, .y = -192 },
         .image = .{
-            .path = "assets/textures/Units/Lancer.png",
+            .path = "textures/Units/Lancer.png",
             .size = .{ .x = 3840, .y = 640 },
         },
         .sounds = .{.{
             .action = .hit,
-            .path = "assets/audio/Sword Impact Hit 1.ogg",
+            .path = "audio/Sword Impact Hit 1.ogg",
         }},
         .animations = .{
             .{ // idle
@@ -230,12 +230,12 @@
         .size = .{ .x = 192, .y = 192 },
         .offset = .{ .x = -96, .y = -148 },
         .image = .{
-            .path = "assets/textures/Units/Witch.png",
+            .path = "textures/Units/Witch.png",
             .size = .{ .x = 4800, .y = 384 },
         },
         .sounds = .{.{
             .action = .hit,
-            .path = "assets/audio/healing-balm.ogg",
+            .path = "audio/healing-balm.ogg",
         }},
         .animations = .{
             .{ // idle

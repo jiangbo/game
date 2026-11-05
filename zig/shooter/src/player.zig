@@ -59,7 +59,7 @@ pub fn init(allocator_: std.mem.Allocator) void {
 
     const bombImage = zhu.getImage("effect/explosion.png").?;
     bombFrameAnimation = .init(bombImage, .xy(32, 32), &bombFrames);
-    bombFrameAnimation.loop = false;
+    bombFrameAnimation.source.loop = false;
 
     healthImage = zhu.getImage("image/Health UI Black.png").?;
 
@@ -70,7 +70,7 @@ pub fn init(allocator_: std.mem.Allocator) void {
 pub fn restart() void {
     bombAnimations.clearRetainingCapacity();
     item.items.clearRetainingCapacity();
-    position = zhu.window.size.sub(size).div(.xy(2, 1));
+    position = zhu.camera.size.sub(size).div(.xy(2, 1));
     bulletTimer.restart();
     deadTimer.restart();
     bombed = false;
@@ -124,7 +124,7 @@ pub fn update(delta: f32) void {
         bulletTimer.restart();
     }
 
-    position = position.clamp(.zero, zhu.window.size.sub(size));
+    position = position.clamp(.zero, zhu.camera.size.sub(size));
 
     const playerRect = zhu.Rect.init(position, size);
     var iterator = std.mem.reverseIterator(enemy.enemies.items);
@@ -233,7 +233,7 @@ pub fn draw() void {
     }
 
     for (0..3) |index| {
-        var color: zhu.Color = .rgba(0.4, 0.4, 0.4, 1);
+        var color: zhu.Color = .rgba(102, 102, 102, 255);
         if (health > index) color = .white;
 
         const i: f32 = @floatFromInt(index);
@@ -245,7 +245,7 @@ pub fn draw() void {
     var buffer: [50]u8 = undefined;
     const scoreText = zhu.format(&buffer, "SCORE:{}", .{score});
     const textSize = zhu.text.measure(scoreText, .{});
-    const x = zhu.window.size.x - textSize.x - 10;
+    const x = zhu.camera.size.x - textSize.x - 10;
     zhu.text.draw(scoreText, .xy(x, 10), .{});
 }
 

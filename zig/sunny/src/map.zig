@@ -34,7 +34,7 @@ pub const maps = tiled.bind(tileSets, &.{
     @import("zon/level2.zon"),
 });
 pub var map = maps[0];
-var tileVertexes: std.ArrayList(batch.Vertex) = .empty;
+var tileVertexes: std.ArrayList(zhu.Vertex) = .empty;
 pub var objects: std.ArrayList(Object) = .empty;
 var tileStates: []TileEnum = &.{};
 var allocator: zhu.Allocator = undefined;
@@ -53,7 +53,7 @@ pub fn init(allocator_: zhu.Allocator, level: u8) void {
 
     map = maps[level];
 
-    tileStates = allocator.alloc(TileEnum, map.grid.count());
+    tileStates = allocator.alloc(TileEnum, map.grid.count()) catch zhu.oom();
     @memset(tileStates, .normal);
     zhu.camera.bound = map.grid.size();
 
@@ -64,8 +64,8 @@ pub fn init(allocator_: zhu.Allocator, level: u8) void {
 }
 
 pub fn deinit(allocator_: zhu.Allocator) void {
-    objects.deinit(allocator_.raw);
-    tileVertexes.deinit(allocator_.raw);
+    objects.deinit(allocator_);
+    tileVertexes.deinit(allocator_);
     allocator_.free(tileStates);
 }
 
@@ -82,13 +82,14 @@ fn parseTileLayer(layer: *const tiled.Layer) void {
         const tile = map.getTile(gid);
         if (tile) |t| {
             pos.y = pos.y - image.size.y + map.grid.cellSize().y;
-            if (tile.?.id == @intFromEnum(ObjectEnum.spike)) {
+            if (tile.?.id == @backingInt(ObjectEnum.spike)) {
                 parseTileSpike(t, pos);
             }
         }
 
-        tileVertexes.append(allocator.raw, .{
+        tileVertexes.append(allocator, .{
             .position = pos,
+            .layer = image.layer,
             .size = image.size,
             .uvRect = image.uvRect(),
         }) catch @panic("oom, can't append tile");
@@ -99,8 +100,8 @@ fn parseTileLayer(layer: *const tiled.Layer) void {
 
 fn parseTileSpike(tile: *const tiled.Tile, pos: zhu.Vector2) void {
     const object = tile.objectGroup.?.objects[0];
-    objects.append(allocator.raw, .{
-        .type = @enumFromInt(tile.id),
+    objects.append(allocator, .{
+        .type = @fromBackingInt(tile.id),
         .position = pos,
         .initPosition = pos,
         .size = object.size,
@@ -138,8 +139,8 @@ fn parseObjectLayer(layer: *const tiled.Layer) void {
 
         var obj: ?tiled.Object = null;
         if (tile.objectGroup) |group| obj = group.objects[0];
-        objects.append(allocator.raw, .{
-            .type = @enumFromInt(tile.id),
+        objects.append(allocator, .{
+            .type = @fromBackingInt(tile.id),
             .position = object.topLeft(),
             .initPosition = object.topLeft(),
             .size = object.size,
@@ -280,7 +281,7 @@ fn drawImageLayer(layer: *const tiled.Layer) void {
         const image = zhu.assets.getImage(layer.image).?;
         const posY = zhu.camera.main.position.y * layer.parallaxY;
         var y = -@mod(posY, layer.height);
-        while (y < window.size.y) : (y += layer.height) {
+        while (y < zhu.camera.size.y) : (y += layer.height) {
             batch.drawImage(image, layer.offset.addXY(0, y), .{});
         }
     }
@@ -289,7 +290,7 @@ fn drawImageLayer(layer: *const tiled.Layer) void {
         const image = zhu.assets.getImage(layer.image).?;
         const posX = zhu.camera.main.position.x * layer.parallaxX;
         var x = -@mod(posX, layer.width);
-        while (x < window.size.x) : (x += layer.width) {
+        while (x < zhu.camera.size.x) : (x += layer.width) {
             batch.drawImage(image, layer.offset.addXY(x, 0), .{});
         }
     }

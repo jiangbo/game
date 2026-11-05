@@ -1,7 +1,5 @@
-const std = @import("std");
+const ecs = @import("ecs");
 const zhu = @import("zhu");
-
-const Entity = zhu.ecs.Entity; // 实体
 
 pub const Position = zhu.Vector2; // 位置
 pub const Sprite = struct { // 精灵
@@ -13,8 +11,6 @@ pub const Sprite = struct { // 精灵
 
 pub const Timer = struct { // 计时器
     remaining: f32,
-    entity: zhu.ecs.Entity,
-    type: enum { attack },
 };
 
 pub const Path = struct { // 路径
@@ -39,8 +35,8 @@ pub const Projectile = struct {
     arc: f32, // 弧度
     time: f32 = 0, // 飞行时间
     totalTime: f32, // 总飞行时间
-    owner: Entity, // 发出者
-    target: Entity, // 命中目标
+    hitSound: ?[:0]const u8, // 发射时保存命中音效
+    target: ecs.Handle, // 飞行期间保持目标身份
     damage: f32, // 发射瞬间锁定的伤害
     offset: zhu.Vector2, // 绘制偏移
     rotation: f32 = 0, // 旋转角度
@@ -48,7 +44,7 @@ pub const Projectile = struct {
 
 pub const Dead = struct {}; // 死亡标签
 pub const DeadOnFinish = struct {}; // 动画结束后标记死亡
-pub const ShowRange = struct {}; // 显示攻击范围标签
+pub const Arrived = struct {}; // 到达终点
 pub const Name = struct { value: [:0]const u8 }; // 名称组件
 pub const ClassName = struct { value: [:0]const u8 }; // 职业名称组件
 
@@ -65,7 +61,7 @@ pub const skill = struct {
         passive: bool = false,
         coolDown: f32 = 0,
         duration: f32 = 0,
-        displayEntity: ?Entity = null,
+        displayEntity: ?ecs.Entity = null,
         buff: Stats = .{},
         costRecovery: f32 = 0,
     };
@@ -77,7 +73,7 @@ pub const skill = struct {
     pub const Cast = struct {}; // 请求施放技能
     pub const Backup = struct { stats: Stats }; // 备份原始属性
     // 技能显示实体
-    pub const Display = struct { owner: Entity, effect: EffectEnum };
+    pub const Display = struct { owner: ecs.Entity, effect: EffectEnum };
 };
 
 ///
@@ -87,14 +83,14 @@ pub const motion = struct {
     pub const Velocity = struct { v: zhu.Vector2 }; // 速度
     pub const FaceLeft = struct {}; // 面向左侧
     pub const Blocker = struct { max: u8, current: u8 = 0 }; // 阻挡者
-    pub const BlockBy = struct { v: Entity }; // 被阻挡
+    pub const BlockBy = struct { v: ecs.Handle }; // 被阻挡
 };
 
 ///
 /// 攻击相关组件
 ///
 pub const attack = struct {
-    pub const Target = struct { v: Entity }; // 攻击目标
+    pub const Target = struct { v: ecs.Handle }; // 攻击目标
     pub const Ready = struct {}; // 冷却完毕，可以攻击。
     pub const Lock = struct {}; // 攻击锁定
     pub const Healer = struct {}; // 治疗者

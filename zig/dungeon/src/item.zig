@@ -43,7 +43,7 @@ fn spawnExit() void {
 }
 
 pub fn update() void {
-    const playerEntity = game.world.getIdentity(Player).?;
+    const playerEntity = game.world.getIdentityEntity(Player).?;
     const viewField = game.world.get(playerEntity, ViewField).?[0];
 
     var query = game.world.queryNot(.{ Item, TilePosition }, .{PlayerView});

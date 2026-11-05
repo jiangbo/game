@@ -1,4 +1,3 @@
-const std = @import("std");
 const zhu = @import("zhu");
 
 const batch = zhu.batch;
@@ -47,10 +46,10 @@ fn computeBackgroundRect(count: f32) void {
     const size = uiZon.frameSize;
 
     const totalWidth = (size.x + padding) * count + padding;
-    const maxScroll = @max(0, totalWidth - zhu.window.size.x);
+    const maxScroll = @max(0, totalWidth - zhu.camera.size.x);
     scrollOffset = @max(0, @min(scrollOffset, maxScroll));
     const startX = -scrollOffset;
-    const startY = zhu.window.size.y - size.y - 2 * padding;
+    const startY = zhu.camera.size.y - size.y - 2 * padding;
 
     backgroundRect = .{
         .min = .xy(startX, startY),
@@ -72,16 +71,16 @@ fn computeUnitPositions() void {
 pub fn deinit() void {}
 
 fn updateScroll(delta: f32) void {
-    const maxScroll = @max(0, backgroundRect.size.x - zhu.window.size.x);
+    const maxScroll = @max(0, backgroundRect.size.x - zhu.camera.size.x);
     if (maxScroll == 0) {
         scrollOffset = 0;
         return;
     }
 
     const speed = 400 * delta;
-    if (zhu.input.key.anyDown(&.{ .LEFT, .A })) scrollOffset += speed;
-    if (zhu.input.key.anyDown(&.{ .RIGHT, .D })) scrollOffset -= speed;
-    scrollOffset -= zhu.input.mouseScrollY * 30;
+    if (zhu.key.anyHeld(&.{ .LEFT, .A })) scrollOffset += speed;
+    if (zhu.key.anyHeld(&.{ .RIGHT, .D })) scrollOffset -= speed;
+    scrollOffset -= zhu.mouse.scrollY * 30;
     scrollOffset = @max(0, @min(scrollOffset, maxScroll));
 
     computeBackgroundRect(@floatFromInt(ctx.units.items.len));
@@ -97,20 +96,20 @@ pub fn update(delta: f32) void {
         return;
     }
 
-    const mousePos = zhu.window.mousePosition;
+    const mousePos = zhu.mouse.pos;
 
     for (ctx.units.items, 0..) |*unit, i| {
         const rect: zhu.Rect = .init(unit.position, uiZon.frameSize);
         if (rect.contains(mousePos)) {
             if (hoveredIndex == null or hoveredIndex.? != i) {
-                zhu.audio.playSound("assets/audio/Fantasy_UI (1).ogg");
+                zhu.audio.playSound("audio/Fantasy_UI (1).ogg");
             }
             hoveredIndex = @intCast(i);
             break;
         }
     } else hoveredIndex = null;
 
-    if (zhu.window.mouse.pressed(.LEFT)) {
+    if (zhu.key.pressed(.MOUSE_LEFT)) {
         if (hoveredIndex) |idx| {
             if (ctx.cost >= ctx.units.items[idx].cost) {
                 ctx.selected = idx;
@@ -122,39 +121,39 @@ pub fn update(delta: f32) void {
 
 pub fn draw() void {
     // 背景条
-    batch.drawRect(backgroundRect, .{ .color = .gray(0.1, 0.1) });
+    batch.drawRect(backgroundRect, .{ .color = .gray(26, 26) });
 
     for (ctx.units.items) |unit| {
-        const class: u8 = @intFromEnum(unit.class);
+        const class: u8 = @backingInt(unit.class);
 
         // 绘制头像
         const face = uiZon.face[unit.face];
-        var image = zhu.assets.loadImage(face.image, .zero);
+        var image = zhu.assets.getImage(zhu.assets.id(face.image)).?;
         batch.drawImage(image.sub(face.rect), unit.position, .{
             .size = uiZon.frameSize,
         });
 
         // 绘制边框
         const border = uiZon.border[if (unit.rarity > 1) 1 else 0];
-        image = zhu.assets.loadImage(border.image, .zero);
+        image = zhu.assets.getImage(zhu.assets.id(border.image)).?;
         batch.drawImage(image.sub(border.rect), unit.position, .{
             .size = uiZon.frameSize,
         });
 
         // 绘制职业
         const icon = uiZon.icon[class];
-        image = zhu.assets.loadImage(icon.image, .zero);
+        image = zhu.assets.getImage(zhu.assets.id(icon.image)).?;
         batch.drawImage(image.sub(icon.rect), unit.position, .{
             .size = uiZon.frameSize.scale(0.5),
         });
 
         // 绘制消耗
         const pos = unit.position.add(uiZon.fontOffset);
-        text.drawNumberColor(unit.cost, pos, .yellow);
+        text.drawNumber(unit.cost, pos, .{ .color = .yellow });
 
         if (ctx.cost < unit.cost) {
             batch.drawRect(.init(unit.position, uiZon.frameSize), .{
-                .color = .rgba(0, 0, 0, 0.2),
+                .color = .rgba(0, 0, 0, 51),
             });
         }
     }
@@ -164,24 +163,24 @@ pub fn draw() void {
 
 /// 绘制准备出击单位（跟随鼠标）
 fn drawPrepare(playerEnum: com.PlayerEnum) void {
-    const template = &spawn.playerZon[@intFromEnum(playerEnum)];
-    const mousePos = zhu.window.mousePosition;
+    const template = &spawn.playerZon[@backingInt(playerEnum)];
+    const mousePos = zhu.mouse.pos;
     const found = map.findPlace(template.attackKind, mousePos);
 
     // 远程单位显示攻击范围
     if (template.attackKind == .ranged) {
         const range = template.stats.range;
         const diameter = range * 2;
-        const circle = zhu.getImage("circle.png");
+        const circle = zhu.getImage("circle.png").?;
         zhu.batch.drawImage(circle, mousePos.sub(.xy(range, range)), .{
             .size = .xy(diameter, diameter),
-            .color = .rgba(0, 1, 0, 0.2),
+            .color = .rgba(0, 255, 0, 51),
         });
     }
 
     // 绘制准备单位精灵（合法绿色，非法红色）
     const size = template.image.size;
-    const image = zhu.assets.loadImage(template.image.path, size);
+    const image = zhu.assets.loadImage(template.image.path, .{ .size = size });
     const sub = image.sub(.init(.zero, template.size));
     zhu.batch.drawImage(sub, mousePos.add(template.offset), .{
         .color = if (found != null) .green else .red,

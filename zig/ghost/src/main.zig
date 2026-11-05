@@ -6,7 +6,7 @@ const scene = @import("scene.zig");
 var soundBuffer: [20]zhu.audio.Sound = undefined;
 
 pub fn init(allocator: zhu.Allocator) void {
-    zhu.audio.init(44100 / 2, &soundBuffer);
+    zhu.audio.init(&soundBuffer, .{ .sample_rate = 22050 });
     scene.init(allocator);
 }
 
@@ -15,15 +15,15 @@ pub fn frame(delta: f32) void {
     scene.draw();
 }
 
-pub fn deinit(allocator: zhu.Allocator) void {
-    scene.deinit(allocator);
+pub fn deinit(_: zhu.Allocator) void {
+    scene.deinit();
     zhu.audio.deinit();
 }
 
 pub fn main(initInfo: std.process.Init) void {
-    zhu.window.run(initInfo.io, initInfo.gpa, .{
-        .title = "幽灵逃生",
-        .size = .xy(1280, 720),
+    zhu.init(initInfo);
+    zhu.extend.storage.init(initInfo, "ghost");
+    zhu.window.run("幽灵逃生", .xy(1280, 720), .{
         .logicSize = .{ .x = 1280, .y = 720 },
         .scaleEnum = .integer,
     });

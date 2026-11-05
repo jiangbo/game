@@ -1,5 +1,6 @@
+const ecs = @import("ecs");
 const std = @import("std");
-const sk = @import("sokol");
+const sk = zhu.sokol;
 const zhu = @import("zhu");
 
 const gui = @import("cimgui");
@@ -9,7 +10,6 @@ const ctx = @import("context.zig");
 const spawn = @import("spawn.zig");
 const scene = @import("scene.zig");
 const title = @import("title.zig");
-const Registry = zhu.ecs.Registry;
 
 pub fn init() void {
     sk.imgui.setup(.{
@@ -37,7 +37,7 @@ pub fn event(ev: *const zhu.window.Event) void {
     _ = sk.imgui.handleEvent(ev.*);
 }
 
-pub fn update(reg: *Registry, delta: f32) void {
+pub fn update(reg: *ecs.World, delta: f32) void {
     sk.imgui.newFrame(.{
         .width = sk.app.width(),
         .height = sk.app.height(),
@@ -46,7 +46,7 @@ pub fn update(reg: *Registry, delta: f32) void {
 
     switch (ctx.currentScene) {
         .title => {
-            renderTitleButtons();
+            renderTitleButtons(reg.allocator);
             renderTitleUI();
         },
         .battle => {
@@ -56,7 +56,7 @@ pub fn update(reg: *Registry, delta: f32) void {
             renderSelectedUnit(reg);
             renderBattleUI(reg);
         },
-        .clear => renderLevelClear(),
+        .clear => renderLevelClear(reg.allocator),
         .end => renderEndScene(),
     }
 
@@ -69,7 +69,7 @@ var showLoadPanel: bool = false;
 var showSavePanel: bool = false;
 var showDebugTools: bool = false;
 
-fn renderTitleButtons() void {
+fn renderTitleButtons(allocator: zhu.Allocator) void {
     const flags = gui.ImGuiWindowFlags_NoTitleBar |
         gui.ImGuiWindowFlags_AlwaysAutoResize;
     if (gui.igBegin("TitleUI", null, flags)) {
@@ -97,20 +97,20 @@ fn renderTitleButtons() void {
     gui.igEnd();
 
     if (showUnitInfo) renderUnitInfo();
-    if (showLoadPanel) renderLoadPanel();
+    if (showLoadPanel) renderLoadPanel(allocator);
 }
 
-fn renderHoveredUnit(reg: *Registry) void {
+fn renderHoveredUnit(reg: *ecs.World) void {
     const entity = ctx.hoveredEntity orelse return;
-    const stats = reg.tryGet(entity, com.Stats) orelse return;
+    const stats = reg.get(entity, com.Stats) orelse return;
 
     if (gui.igBeginTooltip()) {
-        if (reg.tryGet(entity, com.Name)) |name| {
+        if (reg.get(entity, com.Name)) |name| {
             _ = gui.igText("%s  ", name.value.ptr);
             gui.igSameLine();
         }
 
-        if (reg.tryGet(entity, com.ClassName)) |className| {
+        if (reg.get(entity, com.ClassName)) |className| {
             _ = gui.igText("%s", className.value.ptr);
         }
 
@@ -127,20 +127,20 @@ fn renderHoveredUnit(reg: *Registry) void {
     }
 }
 
-fn renderSelectedUnit(reg: *Registry) void {
+fn renderSelectedUnit(reg: *ecs.World) void {
     const entity = ctx.selectedEntity orelse return;
-    const stats = reg.tryGet(entity, com.Stats) orelse return;
+    const stats = reg.get(entity, com.Stats) orelse return;
 
     gui.igSetNextWindowPos(.{ .x = 10, .y = 10 }, gui.ImGuiCond_Always);
     const flags = gui.ImGuiWindowFlags_NoTitleBar |
         gui.ImGuiWindowFlags_AlwaysAutoResize;
     if (gui.igBegin("角色状态", null, flags)) {
-        if (reg.tryGet(entity, com.Name)) |name| {
+        if (reg.get(entity, com.Name)) |name| {
             _ = gui.igText("%s  ", name.value.ptr);
             gui.igSameLine();
         }
 
-        if (reg.tryGet(entity, com.ClassName)) |className| {
+        if (reg.get(entity, com.ClassName)) |className| {
             _ = gui.igText("%s", className.value.ptr);
         }
 
@@ -155,7 +155,7 @@ fn renderSelectedUnit(reg: *Registry) void {
         gui.igSameLine();
         _ = gui.igText("攻击间隔: %.2f", stats.interval);
 
-        if (reg.tryGet(entity, com.motion.Blocker)) |blocker| {
+        if (reg.get(entity, com.motion.Blocker)) |blocker| {
             _ = gui.igText("阻挡数量: %d / %d", blocker.current, blocker.max);
         }
 
@@ -166,8 +166,8 @@ fn renderSelectedUnit(reg: *Registry) void {
     gui.igEnd();
 }
 
-fn renderSelectedSkill(reg: *Registry, entity: zhu.ecs.Entity) void {
-    const value = reg.tryGet(entity, com.skill.Skill) orelse return;
+fn renderSelectedSkill(reg: *ecs.World, entity: ecs.Entity) void {
+    const value = reg.get(entity, com.skill.Skill) orelse return;
     const ready = reg.has(entity, com.skill.Ready);
     const active = reg.has(entity, com.skill.Active);
     const passive = value.passive or reg.has(entity, com.skill.Passive);
@@ -183,7 +183,7 @@ fn renderSelectedSkill(reg: *Registry, entity: zhu.ecs.Entity) void {
     if (active) {
         if (passive) {
             _ = gui.igText("被动技能激活中");
-        } else if (reg.tryGet(entity, com.skill.Timer)) |timer| {
+        } else if (reg.get(entity, com.skill.Timer)) |timer| {
             const remaining = @max(0, value.duration - timer.elapsed);
             _ = gui.igText("激活中，剩余时间: %.1f 秒", remaining);
         }
@@ -194,7 +194,7 @@ fn renderSelectedSkill(reg: *Registry, entity: zhu.ecs.Entity) void {
         gui.igSameLine();
         if (ready) {
             _ = gui.igText("技能准备就绪");
-        } else if (reg.tryGet(entity, com.skill.Timer)) |timer| {
+        } else if (reg.get(entity, com.skill.Timer)) |timer| {
             gui.igProgressBar(timer.progress(), .{ .x = 120, .y = 0 }, null);
         }
     }
@@ -202,10 +202,10 @@ fn renderSelectedSkill(reg: *Registry, entity: zhu.ecs.Entity) void {
     _ = gui.igTextWrapped("%s", value.description.ptr);
 }
 
-fn renderSelectedUpgrade(reg: *Registry, entity: zhu.ecs.Entity) void {
+fn renderSelectedUpgrade(reg: *ecs.World, entity: ecs.Entity) void {
     if (!reg.has(entity, com.Player)) return;
 
-    const player = reg.get(entity, com.Player);
+    const player = reg.get(entity, com.Player).?;
     const upgradeCost = player.cost;
 
     gui.igBeginDisabled(ctx.cost < upgradeCost);
@@ -220,10 +220,10 @@ fn renderSelectedUpgrade(reg: *Registry, entity: zhu.ecs.Entity) void {
     }
 }
 
-fn renderSelectedLeave(reg: *Registry, entity: zhu.ecs.Entity) void {
+fn renderSelectedLeave(reg: *ecs.World, entity: ecs.Entity) void {
     if (!reg.has(entity, com.Player)) return;
 
-    const player = reg.get(entity, com.Player);
+    const player = reg.get(entity, com.Player).?;
     const refund = player.cost * 0.5;
 
     if (gui.igButton("撤退") or zhu.input.key.pressed(.R)) {
@@ -269,7 +269,7 @@ fn renderUnitTable() void {
     sortUnitTable();
 
     for (ctx.units.items) |*unit| {
-        const template = &spawn.playerZon[@intFromEnum(unit.class)];
+        const template = &spawn.playerZon[@backingInt(unit.class)];
         const hp = spawn.statModify(template.stats.maxHealth, unit.level, unit.rarity);
         const atk = spawn.statModify(template.stats.attack, unit.level, unit.rarity);
         const def = spawn.statModify(template.stats.defense, unit.level, unit.rarity);
@@ -311,7 +311,7 @@ fn renderUnitTable() void {
         const canUpgrade = ctx.point >= upgradeCost;
         gui.igBeginDisabled(!canUpgrade);
         var btnText: [32]u8 = undefined;
-        const btnLabel = std.fmt.bufPrintZ(&btnText, "- {}", .{upgradeCost}) catch unreachable;
+        const btnLabel = zhu.formatZ(&btnText, "- {}", .{upgradeCost});
         const clicked = gui.igButton(btnLabel);
         gui.igEndDisabled();
         if (canUpgrade and clicked) {
@@ -334,7 +334,8 @@ fn playerTypeName(attackKind: @TypeOf(spawn.playerZon[0].attackKind)) [:0]const 
 
 fn sortUnitTable() void {
     const sortSpecs = gui.igTableGetSortSpecs();
-    if (sortSpecs == null or !sortSpecs.*.SpecsDirty or ctx.units.items.len == 0) return;
+    if (sortSpecs == null or !sortSpecs.*.SpecsDirty or
+        ctx.units.items.len == 0) return;
 
     const spec = sortSpecs.*.Specs[0];
     if (spec.SortDirection == gui.ImGuiSortDirection_None) return;
@@ -358,15 +359,15 @@ const UnitSort = struct {
 };
 
 fn compareUnit(column: c_int, a: ctx.Unit, b: ctx.Unit) i32 {
-    const ta = &spawn.playerZon[@intFromEnum(a.class)];
-    const tb = &spawn.playerZon[@intFromEnum(b.class)];
+    const ta = &spawn.playerZon[@backingInt(a.class)];
+    const tb = &spawn.playerZon[@backingInt(b.class)];
     const sa = if (ta.skill) |skill| skill.name else "";
     const sb = if (tb.skill) |skill| skill.name else "";
 
     const delta = switch (column) {
         0 => compareText(a.name, b.name),
         1 => compareText(ta.name, tb.name),
-        2 => compareInt(@intFromEnum(ta.attackKind), @intFromEnum(tb.attackKind)),
+        2 => compareInt(@backingInt(ta.attackKind), @backingInt(tb.attackKind)),
         3 => compareFloat(a.level, b.level),
         4 => compareFloat(a.rarity, b.rarity),
         5, 13 => compareFloat(a.cost, b.cost),
@@ -412,21 +413,21 @@ fn compareInt(a: anytype, b: @TypeOf(a)) i32 {
 }
 
 const slots = [_][:0]const u8{
-    "assets/save/SLOT_1.zon",
-    "assets/save/SLOT_2.zon",
-    "assets/save/SLOT_3.zon",
+    "SLOT_1.json",
+    "SLOT_2.json",
+    "SLOT_3.json",
 };
 
-fn renderLoadPanel() void {
+fn renderLoadPanel(allocator: zhu.Allocator) void {
     if (!gui.igBegin("读档选择", &showLoadPanel, gui.ImGuiWindowFlags_NoCollapse)) {
         gui.igEnd();
         return;
     }
     for (slots, 0..) |slot, i| {
         var lbl: [16]u8 = undefined;
-        const text = std.fmt.bufPrintZ(&lbl, "SLOT {}", .{i + 1}) catch unreachable;
+        const text = zhu.formatZ(&lbl, "SLOT {}", .{i + 1});
         if (gui.igButton(text)) {
-            ctx.loadGame(slot) catch |err| {
+            ctx.loadGame(allocator, slot) catch |err| {
                 std.log.err("load failed: {s}, {}", .{ slot, err });
                 continue;
             };
@@ -443,16 +444,16 @@ fn renderLoadPanel() void {
     gui.igEnd();
 }
 
-fn renderSavePanel() void {
+fn renderSavePanel(allocator: zhu.Allocator) void {
     if (!gui.igBegin("存档选择", &showSavePanel, gui.ImGuiWindowFlags_NoCollapse)) {
         gui.igEnd();
         return;
     }
     for (slots, 0..) |slot, i| {
         var lbl: [16]u8 = undefined;
-        const text = std.fmt.bufPrintZ(&lbl, "SLOT {}", .{i + 1}) catch unreachable;
+        const text = zhu.formatZ(&lbl, "SLOT {}", .{i + 1});
         if (gui.igButton(text)) {
-            ctx.saveGame(slot) catch |err| {
+            ctx.saveGame(allocator, slot) catch |err| {
                 std.log.err("save failed: {s}, {}", .{ slot, err });
                 continue;
             };
@@ -469,9 +470,9 @@ fn renderSavePanel() void {
     gui.igEnd();
 }
 
-pub fn draw(reg: *Registry) void {
+pub fn draw(reg: *ecs.World) void {
     _ = reg;
-    sk.imgui.render();
+    sk.imgui.draw();
 }
 
 fn renderTitleUI() void {
@@ -482,11 +483,11 @@ fn renderTitleUI() void {
     gui.igEnd();
 }
 
-fn renderBattleUI(reg: *Registry) void {
+fn renderBattleUI(reg: *ecs.World) void {
     renderLevelInfo();
     renderSettings(reg);
     renderDebugTools();
-    if (showSavePanel) renderSavePanel();
+    if (showSavePanel) renderSavePanel(reg.allocator);
 }
 
 fn renderLevelInfo() void {
@@ -514,7 +515,7 @@ fn renderLevelInfo() void {
     gui.igEnd();
 }
 
-fn renderSettings(reg: *Registry) void {
+fn renderSettings(reg: *ecs.World) void {
     const flags = gui.ImGuiWindowFlags_NoTitleBar |
         gui.ImGuiWindowFlags_AlwaysAutoResize;
     if (gui.igBegin("设置工具", null, flags)) {
@@ -568,7 +569,7 @@ fn renderDebugTools() void {
     gui.igEnd();
 }
 
-fn renderLevelClear() void {
+fn renderLevelClear(allocator: zhu.Allocator) void {
     const flags = gui.ImGuiWindowFlags_NoTitleBar |
         gui.ImGuiWindowFlags_AlwaysAutoResize;
     if (gui.igBegin("通关结算文本", null, flags)) {
@@ -619,7 +620,7 @@ fn renderLevelClear() void {
     }
     gui.igEnd();
 
-    if (showSavePanel) renderSavePanel();
+    if (showSavePanel) renderSavePanel(allocator);
 }
 
 fn renderEndScene() void {

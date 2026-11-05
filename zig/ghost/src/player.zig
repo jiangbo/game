@@ -34,7 +34,7 @@ pub fn init() void {
 
     const deadImage = zhu.getImage("effect/1764.png").?;
     deadAnimation = .init(deadImage, deadFrameSize, &deadFrames);
-    deadAnimation.loop = false;
+    deadAnimation.source.loop = false;
 
     animation = .init(idleImage, frameSize, &frames);
     position = zhu.camera.bound.scale(0.5);

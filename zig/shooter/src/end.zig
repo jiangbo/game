@@ -93,7 +93,7 @@ pub fn draw() void {
         .spacing = 5,
     });
 
-    var y = 0.25 * zhu.window.size.y;
+    var y = 0.25 * zhu.camera.size.y;
     for (scoreBoard[0..scoreCount], 0..) |score, i| {
         var nameTextBuffer: [128]u8 = undefined;
         const nameText = zhu.format(&nameTextBuffer, "{}. {s}", .{
@@ -107,7 +107,7 @@ pub fn draw() void {
             score.score,
         });
         const size = zhu.text.measure(scoreText, .{});
-        const x = zhu.window.size.x - 100 - size.x;
+        const x = zhu.camera.size.x - 100 - size.x;
         zhu.text.draw(scoreText, .xy(x, y), .{});
         y += 50;
     }
@@ -136,8 +136,8 @@ fn drawTyping() void {
         if (blink) zhu.window.drawCenter("_", 0.8, .{ .spacing = 2 });
     } else {
         const width = zhu.text.measure(name, .{ .spacing = 2 }).x;
-        const x = (zhu.window.size.x - width) / 2;
-        const pos: zhu.Vector2 = .xy(x, zhu.window.size.y * 0.8);
+        const x = (zhu.camera.size.x - width) / 2;
+        const pos: zhu.Vector2 = .xy(x, zhu.camera.size.y * 0.8);
         zhu.text.draw(name, pos, .{ .spacing = 2 });
         if (blink) zhu.text.draw("_", pos.addX(width + 4), .{});
     }
@@ -157,11 +157,11 @@ fn saveScore() !void {
         try writer.writeAll(std.mem.asBytes(&value.score));
     }
 
-    try zhu.window.saveAll("save/score.dat", buffer[0..writer.end]);
+    try zhu.extend.storage.writeAll("save/score.dat", buffer[0..writer.end]);
 }
 
 fn loadScore() !void {
-    const slice = try zhu.window.readAll(allocator, "save/score.dat");
+    const slice = try zhu.extend.storage.readAll(allocator, "save/score.dat");
     defer allocator.free(slice);
 
     var index: usize = 0;
@@ -176,8 +176,7 @@ fn loadScore() !void {
         index += 1;
 
         if (index + len + 4 > slice.len) return error.EndOfStream;
-        const n = allocator.dupe(u8, slice[index..][0..len])
-            catch @panic("score oom");
+        const n = allocator.dupe(u8, slice[index..][0..len]) catch @panic("score oom");
         index += len;
 
         const score = std.mem.readInt(u32, slice[index..][0..4], .little);

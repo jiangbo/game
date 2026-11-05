@@ -20,7 +20,7 @@ pub fn init(allocator_: std.mem.Allocator) void {
     size = image.size.scale(0.25);
 
     // 边界范围稍微大一点，等到物品全部看不见才消失。
-    bound = .init(size.scale(-0.5), zhu.window.size.add(size));
+    bound = .init(size.scale(-0.5), zhu.camera.size.add(size));
 }
 
 pub fn maybeDropItem(position: zhu.Vector2) void {
@@ -46,13 +46,13 @@ pub fn update(delta: f32) void {
         }
 
         const x = item.position.x - size.x / 2;
-        if (x < 0 or x > zhu.window.size.x - size.x) {
+        if (x < 0 or x > zhu.camera.size.x - size.x) {
             item.direction.x = -item.direction.x;
             item.bounceCount -|= 1;
         }
 
         const y = item.position.y - size.y / 2;
-        if (y < 0 or y > zhu.window.size.y - size.y) {
+        if (y < 0 or y > zhu.camera.size.y - size.y) {
             item.direction.y = -item.direction.y;
             item.bounceCount -|= 1;
         }

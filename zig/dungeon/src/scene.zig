@@ -19,13 +19,9 @@ const WantToMove = component.WantToMove;
 const TurnState = component.TurnState;
 const PlayerView = component.PlayerView;
 
-var isHelp = false;
-var isDebug = false;
-
 pub fn init(allocator: zhu.Allocator) void {
-    zhu.text.init(@import("zon/font.zon"));
-    zhu.text.changeFontSize(16);
-    game.init(allocator.raw);
+    zhu.text.init(@import("zon/font.zon"), .{ .size = 16 });
+    game.init(allocator);
 
     restart();
 }
@@ -74,8 +70,7 @@ fn nextLevel() void {
 }
 
 pub fn update(_: f32) void {
-    if (zhu.key.released(.H)) isHelp = !isHelp;
-    if (zhu.key.released(.X)) isDebug = !isDebug;
+    zhu.extend.debug.toggle(.X);
 
     if (zhu.key.held(.LEFT_ALT) and zhu.key.released(.ENTER)) {
         return zhu.window.toggleFullScreen();
@@ -94,7 +89,7 @@ pub fn update(_: f32) void {
 pub fn draw() void {
     sceneCall("draw", .{});
 
-    if (map.minMap) zhu.camera.push(.windowScale(.zero, .square(0.25)));
+    if (map.minMap) zhu.camera.push(.windowScale(.zero, .all(0.25)));
     defer if (map.minMap) zhu.camera.pop();
 
     map.draw();
@@ -108,30 +103,7 @@ pub fn draw() void {
 
     hud.draw();
 
-    if (isHelp) drawHelpInfo() else if (isDebug) drawDebugInfo();
-}
-
-fn drawHelpInfo() void {
-    const text =
-        \\按键说明：
-        \\上：W，下：S，左：A，右：D
-        \\确定：F，取消：Q，菜单：E
-        \\帮助：H  按一次打开，再按一次关掉
-    ;
-    var iterator = std.unicode.Utf8View.initUnchecked(text).iterator();
-    var count: u32 = 0;
-    while (iterator.nextCodepoint()) |code| {
-        if (code == '\n') continue;
-        count += 1;
-    }
-    debutTextCount = count;
-
-    zhu.text.draw(text, .xy(10, 5), .{ .color = .green });
-}
-
-var debutTextCount: u32 = 0;
-fn drawDebugInfo() void {
-    zhu.debug.draw(&.{});
+    zhu.extend.debug.draw(.{});
 }
 
 pub fn deinit() void {

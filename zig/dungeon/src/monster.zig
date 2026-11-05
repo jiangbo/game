@@ -47,7 +47,7 @@ pub fn init() void {
         f.* = if (found == null) 0 else template.frequency;
     }
 
-    const player = game.world.getIdentity(Player).?;
+    const player = game.world.getIdentityEntity(Player).?;
     const playerView = game.world.get(player, ViewField).?[0];
     for (map.spawns[1..]) |pos| {
         const entity = game.world.createEntity();
@@ -93,7 +93,7 @@ pub fn update() void {
 }
 
 fn moveOrAttack() void {
-    const playerEntity = game.world.getIdentity(Player).?;
+    const playerEntity = game.world.getIdentityEntity(Player).?;
     const playerPos = game.world.get(playerEntity, TilePosition).?;
     const rect = game.world.get(playerEntity, ViewField).?[0];
 

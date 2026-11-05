@@ -34,7 +34,8 @@ var walks: [HEIGHT * WIDTH]bool = undefined;
 var theme: Theme = undefined;
 
 pub fn init(mapLevel: u8) void {
-    image = zhu.assets.loadImage("dungeonfont.png", .xy(512, 512));
+    image = zhu.assets.loadImage("dungeonfont.png", .{ .size = .all(512) });
+    zhu.camera.bound = size;
     theme = if (zhu.random.boolean()) .dungeon else .forest;
     currentLevel = mapLevel;
 
@@ -123,13 +124,13 @@ fn applyPrefab() void {
                 spawns[i] = .{ .x = dx, .y = @intCast(start.y + y) };
                 count += 1;
                 tiles[index] = .floor;
-            } else tiles[index] = @enumFromInt(FORTRESS[y][x]);
+            } else tiles[index] = @fromBackingInt(@intCast(FORTRESS[y][x]));
         }
     }
 }
 
 pub fn getTextureFromTile(tile: Tile) zhu.Image {
-    var index: usize = @intFromEnum(tile);
+    var index: usize = @backingInt(tile);
     if (theme == .forest) {
         if (tile == .wall) index = 34;
         if (tile == .floor) index = 59;
@@ -232,7 +233,7 @@ pub fn queryLessDistance(pos: TilePosition) ?TilePosition {
 }
 
 pub fn updatePlayerWalk() void {
-    const player = game.world.getIdentity(Player).?;
+    const player = game.world.getIdentityEntity(Player).?;
     const viewField = game.world.get(player, ViewField).?[0];
 
     for (viewField.y..viewField.y + viewField.h) |y| {
@@ -253,7 +254,7 @@ pub fn draw() void {
 }
 
 fn drawPlayerWalk() void {
-    const playerEntity = game.world.getIdentity(Player).?;
+    const playerEntity = game.world.getIdentityEntity(Player).?;
     const viewField = game.world.get(playerEntity, ViewField).?[0];
 
     for (walks, 0..) |isWalk, index| {
@@ -266,13 +267,13 @@ fn drawPlayerWalk() void {
 
         const tex = getTextureFromTile(tiles[index]);
         zhu.batch.drawImage(tex, getPositionFromIndex(index), .{
-            .color = .rgba(0.5, 0.5, 0.5, 1),
+            .color = .rgba(128, 128, 128, 255),
         });
     }
 }
 
 fn drawPlayerView() void {
-    const player = game.world.getIdentity(Player).?;
+    const player = game.world.getIdentityEntity(Player).?;
     const viewField = game.world.get(player, ViewField).?[0];
 
     for (viewField.x..viewField.x + viewField.w) |x| {

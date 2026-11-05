@@ -1,5 +1,5 @@
 const zhu = @import("zhu");
-const ecs = zhu.ecs;
+const ecs = @import("ecs");
 
 const com = @import("../component.zig");
 const ctx = @import("../context.zig");
@@ -7,7 +7,7 @@ const spawn = @import("../spawn.zig");
 
 const displayPositionOffset = zhu.Vector2.xy(0, -96);
 
-pub fn update(reg: *ecs.Registry, delta: f32) void {
+pub fn update(reg: *ecs.World, delta: f32) void {
     updateCast(reg);
     updateTimer(reg, delta);
     updateCostRecovery(reg, delta);
@@ -15,26 +15,26 @@ pub fn update(reg: *ecs.Registry, delta: f32) void {
 }
 
 /// 处理技能施放请求：备份原始属性，应用 buff 倍率，进入激活状态。
-fn updateCast(reg: *ecs.Registry) void {
-    var view = reg.view(.{ com.skill.Cast, com.skill.Ready });
+fn updateCast(reg: *ecs.World) void {
+    var view = reg.query(.{ com.skill.Cast, com.skill.Ready }).reverse();
     while (view.next()) |entity| {
-        if (view.has(entity, com.skill.Passive)) continue;
+        if (reg.has(entity, com.skill.Passive)) continue;
 
-        const skill = view.getPtr(entity, com.skill.Skill);
+        const skill = reg.getPtr(entity, com.skill.Skill).?;
 
-        if (view.tryGetPtr(entity, com.Stats)) |stats| {
+        if (reg.getPtr(entity, com.Stats)) |stats| {
             const buff = skill.buff;
-            inline for (@typeInfo(com.Stats).@"struct".fields) |field| {
-                @field(stats, field.name) *= @field(buff, field.name);
+            inline for (@typeInfo(com.Stats).@"struct".field_names) |field| {
+                @field(stats, field) *= @field(buff, field);
             }
         }
-        view.remove(entity, com.skill.Ready);
-        view.add(entity, com.skill.Active{});
-        view.add(entity, com.skill.Timer.init(skill.duration));
+        reg.remove(entity, com.skill.Ready);
+        reg.add(entity, com.skill.Active{});
+        reg.add(entity, com.skill.Timer.init(skill.duration));
         // 盾御技能激活时切换防御姿态动画
         if (skill.id == .shield) {
-            view.add(entity, com.animation.Play{
-                .index = @intFromEnum(com.StateEnum.walk),
+            reg.add(entity, com.animation.Play{
+                .index = @backingInt(com.StateEnum.walk),
                 .loop = true,
             });
         }
@@ -45,93 +45,85 @@ fn updateCast(reg: *ecs.Registry) void {
 
 /// 迭代有 Timer 的技能实体，计时结束根据 Active 判断：
 /// 有 Active → 持续结束，恢复属性，切回冷却；无 Active → 冷却结束，标记 Ready。
-fn updateTimer(reg: *ecs.Registry, delta: f32) void {
-    var view = reg.view(.{com.skill.Timer});
+fn updateTimer(reg: *ecs.World, delta: f32) void {
+    var view = reg.query(.{com.skill.Timer}).reverse();
     while (view.next()) |entity| {
-        const timer = view.getPtr(entity, com.skill.Timer);
-        if (!timer.isFinishedOnceUpdate(delta)) continue;
+        const timer = reg.getPtr(entity, com.skill.Timer).?;
+        if (!timer.updateFinished(delta)) continue;
 
-        const skill = view.getPtr(entity, com.skill.Skill);
-        if (view.has(entity, com.skill.Active)) {
+        const skill = reg.getPtr(entity, com.skill.Skill).?;
+        if (reg.has(entity, com.skill.Active)) {
             // 持续结束：按倍率还原属性，切回冷却计时
-            if (view.tryGetPtr(entity, com.Stats)) |stats| {
+            if (reg.getPtr(entity, com.Stats)) |stats| {
                 const buff = skill.buff;
-                inline for (@typeInfo(com.Stats).@"struct".fields) |field| {
-                    @field(stats, field.name) /= @field(buff, field.name);
+                inline for (@typeInfo(com.Stats).@"struct".field_names) |field| {
+                    @field(stats, field) /= @field(buff, field);
                 }
             }
             if (skill.id == .shield) {
-                view.add(entity, com.animation.Play{
-                    .index = @intFromEnum(com.StateEnum.idle),
+                reg.add(entity, com.animation.Play{
+                    .index = @backingInt(com.StateEnum.idle),
                     .loop = true,
                 });
             }
-            view.remove(entity, com.skill.Active);
+            reg.remove(entity, com.skill.Active);
             timer.* = .init(skill.coolDown);
         } else {
             // 冷却结束：标记 Ready，移除 Timer
-            view.add(entity, com.skill.Ready{});
-            view.remove(entity, com.skill.Timer);
+            reg.add(entity, com.skill.Ready{});
+            reg.remove(entity, com.skill.Timer);
         }
     }
 }
 
-fn updateCostRecovery(reg: *ecs.Registry, delta: f32) void {
-    var view = reg.view(.{ com.skill.CostRecovery, com.skill.Active });
+fn updateCostRecovery(reg: *ecs.World, delta: f32) void {
+    var view = reg.query(.{ com.skill.CostRecovery, com.skill.Active }).reverse();
     while (view.next()) |entity| {
-        const recovery = view.get(entity, com.skill.CostRecovery);
+        const recovery = reg.get(entity, com.skill.CostRecovery).?;
         ctx.cost += recovery.rate * delta;
     }
 }
 
-fn updateDisplay(reg: *ecs.Registry) void {
+fn updateDisplay(reg: *ecs.World) void {
     updateExistingDisplay(reg);
     createMissingDisplay(reg);
 }
 
-/// 检查已有特效实体：owner 死亡或状态不匹配时标记 Dead，
-/// 状态匹配时更新位置跟随 owner。
-fn updateExistingDisplay(reg: *ecs.Registry) void {
-    var view = reg.reverseView(.{ com.skill.Display, com.Position, com.Sprite });
+/// 状态改变时移除旧特效；拥有者销毁前也会调用 removeDisplay。
+fn updateExistingDisplay(reg: *ecs.World) void {
+    var view = reg.query(.{ com.skill.Display, com.Position, com.Sprite }).reverse();
     while (view.next()) |entity| {
-        const display = view.getPtr(entity, com.skill.Display);
-        const displayEntity = view.toEntity(entity);
+        const display = reg.getPtr(entity, com.skill.Display).?;
         const owner = display.owner;
-
-        if (!reg.validEntity(owner)) {
-            reg.add(displayEntity, com.Dead{});
-            continue;
-        }
 
         var state: ?com.EffectEnum = null;
         if (reg.has(owner, com.skill.Active)) state = .active;
         if (reg.has(owner, com.skill.Ready)) state = .ready;
 
         if (state == null or display.effect != state.?) {
-            reg.getPtr(owner, com.skill.Skill).displayEntity = null;
-            reg.add(displayEntity, com.Dead{});
+            removeDisplay(reg, owner);
             continue;
         }
 
-        view.getPtr(entity, com.Position).* = displayPosition(reg, owner);
+        reg.getPtr(entity, com.Position).?.* = displayPosition(reg, owner);
     }
 }
 
 /// 为有可显示状态（Ready/Active）但缺少特效的技能创建特效实体。
-fn createMissingDisplay(reg: *ecs.Registry) void {
-    var view = reg.view(.{ com.skill.Skill, com.Position });
+fn createMissingDisplay(reg: *ecs.World) void {
+    var view = reg.query(.{com.skill.Skill}).reverse();
     while (view.next()) |entity| {
         var state: ?com.EffectEnum = null;
-        if (view.has(entity, com.skill.Active)) state = .active;
-        if (view.has(entity, com.skill.Ready)) state = .ready;
+        if (reg.has(entity, com.skill.Active)) state = .active;
+        if (reg.has(entity, com.skill.Ready)) state = .ready;
 
-        const skill = view.getPtr(entity, com.skill.Skill);
-        if (reg.validEntity(skill.displayEntity)) continue;
+        const skill = reg.getPtr(entity, com.skill.Skill).?;
+        if (skill.displayEntity != null) continue;
 
         const displayEntity = spawn.effect(reg, state orelse continue);
-        const owner = view.toEntity(entity);
+        const owner = entity;
         reg.add(displayEntity, displayPosition(reg, owner));
-        reg.getPtr(displayEntity, com.Animation).loop = true;
+        reg.getPtr(displayEntity, com.Animation).?.source.loop = true;
         skill.displayEntity = displayEntity;
         reg.add(displayEntity, com.skill.Display{
             .owner = owner,
@@ -140,7 +132,15 @@ fn createMissingDisplay(reg: *ecs.Registry) void {
     }
 }
 
-fn displayPosition(reg: *ecs.Registry, owner: ecs.Entity) com.Position {
-    const position = reg.get(owner, com.Position);
+fn displayPosition(reg: *ecs.World, owner: ecs.Entity) com.Position {
+    const position = reg.get(owner, com.Position).?;
     return position.add(displayPositionOffset);
+}
+
+// 特效只由技能状态切换或拥有者销毁时移除，编号不会留下悬空引用。
+pub fn removeDisplay(reg: *ecs.World, owner: ecs.Entity) void {
+    const skill = reg.getPtr(owner, com.skill.Skill) orelse return;
+    const entity = skill.displayEntity orelse return;
+    skill.displayEntity = null;
+    reg.destroyEntity(entity);
 }

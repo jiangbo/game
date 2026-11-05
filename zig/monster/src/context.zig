@@ -1,3 +1,4 @@
+const ecs = @import("ecs");
 const std = @import("std");
 const zhu = @import("zhu");
 
@@ -46,8 +47,8 @@ pub var enemyCount: u32 = 0;
 pub var enemyArrivedCount: u32 = 0;
 pub var enemyKilledCount: u32 = 0;
 pub var selected: ?usize = null;
-pub var hoveredEntity: ?zhu.ecs.Entity = null;
-pub var selectedEntity: ?zhu.ecs.Entity = null;
+pub var hoveredEntity: ?ecs.Entity = null;
+pub var selectedEntity: ?ecs.Entity = null;
 pub var uiWantCaptureMouse: bool = false;
 pub var paused: bool = false;
 pub var timeScale: f32 = 1;
@@ -56,27 +57,32 @@ pub var unitLayoutDirty: bool = true;
 // 地图数组中索引 0 是标题地图，关卡从索引 1 开始。
 pub var levelIndex: usize = 0;
 
-pub fn init() void {
+var saved: ?std.json.Parsed(SaveData) = null;
+
+pub fn init(allocator: zhu.Allocator) void {
     levelIndex = contextZon.level;
-    reset();
+    reset(allocator);
 }
 
-pub fn deinit() void {
-    units.deinit(zhu.assets.allocator);
+pub fn deinit(allocator: zhu.Allocator) void {
+    units.deinit(allocator);
+    if (saved) |*data| data.deinit();
 }
 
 /// 重置为默认存档数据，用于程序启动时初始化。
-pub fn reset() void {
+pub fn reset(allocator: zhu.Allocator) void {
     resetBattle();
     point = contextZon.point;
     levelIndex = contextZon.level;
     levelClear = false;
 
     units.clearRetainingCapacity();
+    if (saved) |*data| data.deinit();
+    saved = null;
     for (contextZon.units) |zon| {
         var unit = zon;
         unit.cost = playerCost(unit.class, unit.rarity);
-        units.append(zhu.assets.allocator, unit) catch @panic("oom");
+        units.append(allocator, unit) catch @panic("oom");
     }
 
     sortUnitsByCost();
@@ -107,7 +113,7 @@ fn sortUnitsByCost() void {
 }
 
 pub fn playerCost(playerEnum: PlayerEnum, rarity: f32) f32 {
-    const base = spawn.playerZon[@intFromEnum(playerEnum)].cost;
+    const base = spawn.playerZon[@backingInt(playerEnum)].cost;
     return @round(spawn.statModify(base, 1, rarity));
 }
 
@@ -147,7 +153,7 @@ const SaveData = struct {
     units: []const Unit,
 };
 
-pub fn saveGame(path: [:0]const u8) !void {
+pub fn saveGame(allocator: zhu.Allocator, path: [:0]const u8) !void {
     const data = SaveData{
         .level = @intCast(levelIndex),
         .point = point,
@@ -155,43 +161,32 @@ pub fn saveGame(path: [:0]const u8) !void {
         .units = units.items,
     };
 
-    var buf: [4096]u8 = undefined;
-    var writer = std.Io.Writer.fixed(&buf);
-    try std.zon.stringify.serialize(data, .{}, &writer);
-    try zhu.window.saveAll(path, buf[0..writer.end]);
+    const content = try std.json.Stringify.valueAlloc(allocator, data, .{});
+    defer allocator.free(content);
+    try zhu.extend.storage.writeAll(path, content);
     std.log.info("save: {s}", .{path});
 }
 
-pub fn loadGame(path: [:0]const u8) !void {
-    const content = try zhu.window.readAll(path);
-    defer zhu.assets.allocator.free(content);
+pub fn loadGame(allocator: zhu.Allocator, path: [:0]const u8) !void {
+    const content = try zhu.extend.storage.readAll(allocator, path);
+    defer allocator.free(content);
 
-    const terminated = try std.fmt.allocPrintSentinel(
-        zhu.assets.allocator,
-        "{s}",
-        .{content},
-        0,
-    );
-    defer zhu.assets.allocator.free(terminated);
-
-    const data = try std.zon.parse.fromSlice(
-        SaveData,
-        zhu.assets.allocator,
-        terminated,
-        null,
-        .{},
-    );
-    defer std.zon.parse.free(zhu.assets.allocator, data);
+    const parsed = try std.json.parseFromSlice(SaveData, allocator, content, .{
+        .allocate = .alloc_always,
+    });
+    const data = parsed.value;
 
     levelIndex = data.level;
     point = data.point;
     levelClear = data.levelClear;
 
     units.clearRetainingCapacity();
+    if (saved) |*old| old.deinit();
+    saved = parsed;
     for (data.units) |saveUnit| {
         var unit = saveUnit;
         unit.cost = playerCost(unit.class, unit.rarity);
-        units.append(zhu.assets.allocator, unit) catch @panic("oom");
+        units.append(allocator, unit) catch @panic("oom");
     }
     sortUnitsByCost();
     unitLayoutDirty = true;

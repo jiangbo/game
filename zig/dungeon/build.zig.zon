@@ -2,18 +2,17 @@
     .name = .demo,
     .version = "0.0.0",
     .fingerprint = 0xd642dfa0c0da2385,
-    .minimum_zig_version = "0.16.0",
+    .minimum_zig_version = "0.17.1",
     .dependencies = .{
         .migu = .{
-            .url = "git+https://github.com/jiangbo/MiGu.git#7abdacccc97c6ada8cfdfc8067263eafee4f250d",
-            .hash = "migu-0.1.0-1dj5JkySAADuAXViUtD2d3su6aST__3Bt4DsW5tZYBuC",
+            .url = "https://github.com/jiangbo/MiGu/archive/refs/tags/v0.1.0.tar.gz",
+            .hash = "migu-0.1.0-1dj5Juu3AAA47E1TfI1y3ChXI2loyjZEsSCijtSkAcEq",
         },
         .zhuyu = .{
-            .url = "git+https://github.com/jiangbo/ZhuYu.git#3e3790abc185b49891d53b0fe285a9cbeaffde42",
-            .hash = "zhuyu-0.1.0-U4gVRuyuAgDKkU7xOxMpr6IaHPZxWQETRoPQpPWpm3nY",
+            .url = "https://github.com/jiangbo/ZhuYu/archive/refs/tags/v0.0.2.tar.gz",
+            .hash = "zhuyu-0.1.0-U4gVRqPICQD0UWpUZqJD3gTb_zs8OS5oPgw46aPXsRVn",
         },
     },
 
     .paths = .{""},
 }
-

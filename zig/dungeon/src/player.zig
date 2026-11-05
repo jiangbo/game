@@ -42,7 +42,7 @@ pub fn init() void {
     game.world.add(entity, Damage{ .v = 1 });
     map.updatePlayerWalk();
 
-    cameraFollow(map.worldPosition(tilePos));
+    zhu.camera.directFollow(map.worldPosition(tilePos));
 }
 
 pub fn update() void {
@@ -67,12 +67,12 @@ pub fn update() void {
         }
     }
 
-    const start: u32 = @intFromEnum(zhu.input.key.Code._0);
+    const start = @backingInt(zhu.key.Code._0);
     var query = game.world.query(.{ Item, Carried });
     var index: u8 = 1;
     while (query.next()) |itemEntity| : (index += 1) {
         if (index > 9) break;
-        if (!zhu.key.released(@enumFromInt(start + index))) continue;
+        if (!zhu.key.released(@fromBackingInt(start + index))) continue;
 
         if (game.world.get(itemEntity, Healing)) |heal| { // 使用药水
             const h = game.world.getPtr(entity, Health).?;
@@ -128,12 +128,5 @@ fn moveOrAttack(newPos: TilePosition) void {
 
     map.updatePlayerWalk();
     map.updateDistance(newPos);
-    cameraFollow(map.worldPosition(newPos));
-}
-
-fn cameraFollow(position: Position) void {
-    const scaleSize = zhu.window.size;
-    const half = scaleSize.scale(0.5);
-    const max = map.size.sub(scaleSize).max(.zero);
-    zhu.camera.main.position = position.sub(half).clamp(.zero, max);
+    zhu.camera.directFollow(map.worldPosition(newPos));
 }

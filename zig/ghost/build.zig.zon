@@ -2,7 +2,7 @@
     .name = .demo,
     .version = "0.0.0",
     .fingerprint = 0xd642dfa0c0da2385,
-    .minimum_zig_version = "0.16.0",
+    .minimum_zig_version = "0.17.1",
     .dependencies = .{
         .zhuyu = .{
             .url = "git+https://github.com/jiangbo/ZhuYu.git#3e3790abc185b49891d53b0fe285a9cbeaffde42",

@@ -3,20 +3,15 @@ const zhu = @import("zhu");
 
 const scene = @import("scene.zig");
 
-var vertexBuffer: []zhu.batch.Vertex = undefined;
+// 顶点由引擎管理，游戏只提供绘制命令缓冲。
 var commandBuffer: [128]zhu.batch.Command = undefined;
 
+// 初始化基础图形和场景，图片尺寸用于异步加载校验。
 pub fn init(allocator: zhu.Allocator) void {
-    vertexBuffer = allocator.alloc(zhu.batch.Vertex, 5000);
-    zhu.batch.init(vertexBuffer, &commandBuffer);
-
-    zhu.batch.circleImage = zhu.assets.loadImage(
-        "circle.png",
-        .xy(128, 128),
-    );
-    const size = zhu.batch.circleImage.size;
-    const rect = zhu.Rect.init(.zero, size).centerScale(0.25);
-    zhu.batch.whiteImage = zhu.batch.circleImage.sub(rect);
+    _ = zhu.loadImage("circle.png", .{
+        .size = .all(128),
+    });
+    zhu.batch.init(&commandBuffer);
 
     scene.init(allocator);
 }
@@ -30,15 +25,14 @@ pub fn frame(delta: f32) void {
     zhu.batch.endDraw();
 }
 
-pub fn deinit(allocator: zhu.Allocator) void {
+pub fn deinit(_: zhu.Allocator) void {
     scene.deinit();
-    allocator.free(vertexBuffer);
 }
 
+// 先设置引擎分配器和 IO，再创建窗口。
 pub fn main(initInfo: std.process.Init) void {
-    zhu.window.run(initInfo.io, initInfo.gpa, .{
-        .title = "地宫探险",
-        .size = .xy(1280, 800),
+    zhu.init(initInfo);
+    zhu.window.run("地宫探险", .xy(1280, 800), .{
         .logicSize = .xy(640, 400),
         .scaleEnum = .fit,
     });

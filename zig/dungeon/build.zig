@@ -14,24 +14,21 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
 
-    const imports = [_]std.Build.Module.Import{
-        .{ .name = "ecs", .module = migu.module("ecs") },
-        .{ .name = "zhu", .module = zhuyu.module("zhu") },
-    };
-
-    var emLink = zhuBuild.defaultEmLinkOptions;
-    emLink.use_webgl2 = true;
-    emLink.use_emmalloc = true;
-    emLink.use_filesystem = true;
-    emLink.extra_args = &.{"-sINITIAL_MEMORY=64MB"};
-
-    _ = try zhuBuild.addApp(b, .{
-        .name = "demo",
+    const module = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
-        .zhuyu = zhuyu,
-        .imports = &imports,
-        .em_link = emLink,
+        .imports = &.{
+            .{ .name = "ecs", .module = migu.module("ecs") },
+            .{ .name = "zhu", .module = zhuyu.module("zhu") },
+        },
     });
+
+    const exe = b.addExecutable(.{ .name = "demo", .root_module = module });
+    b.installArtifact(exe);
+
+    const run = b.addRunArtifact(exe);
+    run.step.dependOn(b.getInstallStep());
+    run.addPassthruArgs();
+    b.step("run", "Run the game").dependOn(&run.step);
 }

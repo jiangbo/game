@@ -7,16 +7,16 @@ const spawn = @import("spawn.zig");
 var titleLogo: zhu.graphics.Image = undefined;
 
 pub fn init() void {
-    titleLogo = zhu.getImage("textures/UI/title.png");
+    titleLogo = zhu.getImage("textures/UI/title.png").?;
 }
-pub fn deinit() void {
-    map.deinit();
+pub fn deinit(allocator: zhu.Allocator) void {
+    map.deinit(allocator);
 }
 
-pub fn enter() void {
+pub fn enter(allocator: zhu.Allocator) void {
     ctx.timeScale = 1;
-    map.init(0);
-    zhu.audio.playMusic("assets/audio/HEROICCC(chosic.com).ogg");
+    map.init(allocator, 0);
+    zhu.audio.playMusic("audio/HEROICCC(chosic.com).ogg");
 }
 
 pub fn startGame() void {
@@ -34,8 +34,8 @@ pub fn startGame() void {
     }
 }
 
-pub fn exit() void {
-    map.deinit();
+pub fn exit(allocator: zhu.Allocator) void {
+    map.deinit(allocator);
 }
 
 pub fn update(delta: f32) void {

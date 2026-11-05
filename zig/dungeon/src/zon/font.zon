@@ -1,15 +1,17 @@
 .{
+    // 字形宽高和前进距离均使用图集像素，英文字符前进 8 像素。
+    .name = "terminal8x8",
     .size = 16,
     .lineHeight = 16,
     .imageSize = .{ .x = 128, .y = 128 },
-    .images = .{ "terminal8x8.png" },
+    .images = .{"terminal8x8.png"},
     .pages = .{.{
         .min = 32,
         .max = 126,
         .chars = .{
             .{
                 .id = 32,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 0, .y = 16 },
                     .size = .{ .x = 0, .y = 0 },
@@ -18,7 +20,7 @@
             },
             .{
                 .id = 33,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 8, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -27,7 +29,7 @@
             },
             .{
                 .id = 34,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 16, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -36,7 +38,7 @@
             },
             .{
                 .id = 35,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 24, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -45,7 +47,7 @@
             },
             .{
                 .id = 36,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 32, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -54,7 +56,7 @@
             },
             .{
                 .id = 37,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 40, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -63,7 +65,7 @@
             },
             .{
                 .id = 38,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 48, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -72,7 +74,7 @@
             },
             .{
                 .id = 39,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 56, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -81,7 +83,7 @@
             },
             .{
                 .id = 40,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 64, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -90,7 +92,7 @@
             },
             .{
                 .id = 41,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 72, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -99,7 +101,7 @@
             },
             .{
                 .id = 42,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 80, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -108,7 +110,7 @@
             },
             .{
                 .id = 43,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 88, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -117,7 +119,7 @@
             },
             .{
                 .id = 44,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 96, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -126,7 +128,7 @@
             },
             .{
                 .id = 45,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 104, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -135,7 +137,7 @@
             },
             .{
                 .id = 46,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 112, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -144,7 +146,7 @@
             },
             .{
                 .id = 47,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 120, .y = 16 },
                     .size = .{ .x = 8, .y = 8 },
@@ -153,7 +155,7 @@
             },
             .{
                 .id = 48,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 0, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -162,7 +164,7 @@
             },
             .{
                 .id = 49,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 8, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -171,7 +173,7 @@
             },
             .{
                 .id = 50,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 16, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -180,7 +182,7 @@
             },
             .{
                 .id = 51,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 24, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -189,7 +191,7 @@
             },
             .{
                 .id = 52,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 32, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -198,7 +200,7 @@
             },
             .{
                 .id = 53,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 40, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -207,7 +209,7 @@
             },
             .{
                 .id = 54,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 48, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -216,7 +218,7 @@
             },
             .{
                 .id = 55,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 56, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -225,7 +227,7 @@
             },
             .{
                 .id = 56,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 64, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -234,7 +236,7 @@
             },
             .{
                 .id = 57,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 72, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -243,7 +245,7 @@
             },
             .{
                 .id = 58,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 80, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -252,7 +254,7 @@
             },
             .{
                 .id = 59,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 88, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -261,7 +263,7 @@
             },
             .{
                 .id = 60,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 96, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -270,7 +272,7 @@
             },
             .{
                 .id = 61,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 104, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -279,7 +281,7 @@
             },
             .{
                 .id = 62,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 112, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -288,7 +290,7 @@
             },
             .{
                 .id = 63,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 120, .y = 24 },
                     .size = .{ .x = 8, .y = 8 },
@@ -297,7 +299,7 @@
             },
             .{
                 .id = 64,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 0, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -306,7 +308,7 @@
             },
             .{
                 .id = 65,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 8, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -315,7 +317,7 @@
             },
             .{
                 .id = 66,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 16, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -324,7 +326,7 @@
             },
             .{
                 .id = 67,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 24, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -333,7 +335,7 @@
             },
             .{
                 .id = 68,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 32, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -342,7 +344,7 @@
             },
             .{
                 .id = 69,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 40, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -351,7 +353,7 @@
             },
             .{
                 .id = 70,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 48, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -360,7 +362,7 @@
             },
             .{
                 .id = 71,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 56, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -369,7 +371,7 @@
             },
             .{
                 .id = 72,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 64, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -378,7 +380,7 @@
             },
             .{
                 .id = 73,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 72, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -387,7 +389,7 @@
             },
             .{
                 .id = 74,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 80, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -396,7 +398,7 @@
             },
             .{
                 .id = 75,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 88, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -405,7 +407,7 @@
             },
             .{
                 .id = 76,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 96, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -414,7 +416,7 @@
             },
             .{
                 .id = 77,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 104, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -423,7 +425,7 @@
             },
             .{
                 .id = 78,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 112, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -432,7 +434,7 @@
             },
             .{
                 .id = 79,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 120, .y = 32 },
                     .size = .{ .x = 8, .y = 8 },
@@ -441,7 +443,7 @@
             },
             .{
                 .id = 80,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 0, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -450,7 +452,7 @@
             },
             .{
                 .id = 81,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 8, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -459,7 +461,7 @@
             },
             .{
                 .id = 82,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 16, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -468,7 +470,7 @@
             },
             .{
                 .id = 83,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 24, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -477,7 +479,7 @@
             },
             .{
                 .id = 84,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 32, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -486,7 +488,7 @@
             },
             .{
                 .id = 85,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 40, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -495,7 +497,7 @@
             },
             .{
                 .id = 86,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 48, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -504,7 +506,7 @@
             },
             .{
                 .id = 87,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 56, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -513,7 +515,7 @@
             },
             .{
                 .id = 88,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 64, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -522,7 +524,7 @@
             },
             .{
                 .id = 89,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 72, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -531,7 +533,7 @@
             },
             .{
                 .id = 90,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 80, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -540,7 +542,7 @@
             },
             .{
                 .id = 91,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 88, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -549,7 +551,7 @@
             },
             .{
                 .id = 92,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 96, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -558,7 +560,7 @@
             },
             .{
                 .id = 93,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 104, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -567,7 +569,7 @@
             },
             .{
                 .id = 94,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 112, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -576,7 +578,7 @@
             },
             .{
                 .id = 95,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 120, .y = 40 },
                     .size = .{ .x = 8, .y = 8 },
@@ -585,7 +587,7 @@
             },
             .{
                 .id = 96,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 0, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -594,7 +596,7 @@
             },
             .{
                 .id = 97,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 8, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -603,7 +605,7 @@
             },
             .{
                 .id = 98,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 16, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -612,7 +614,7 @@
             },
             .{
                 .id = 99,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 24, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -621,7 +623,7 @@
             },
             .{
                 .id = 100,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 32, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -630,7 +632,7 @@
             },
             .{
                 .id = 101,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 40, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -639,7 +641,7 @@
             },
             .{
                 .id = 102,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 48, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -648,7 +650,7 @@
             },
             .{
                 .id = 103,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 56, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -657,7 +659,7 @@
             },
             .{
                 .id = 104,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 64, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -666,7 +668,7 @@
             },
             .{
                 .id = 105,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 72, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -675,7 +677,7 @@
             },
             .{
                 .id = 106,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 80, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -684,7 +686,7 @@
             },
             .{
                 .id = 107,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 88, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -693,7 +695,7 @@
             },
             .{
                 .id = 108,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 96, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -702,7 +704,7 @@
             },
             .{
                 .id = 109,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 104, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -711,7 +713,7 @@
             },
             .{
                 .id = 110,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 112, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -720,7 +722,7 @@
             },
             .{
                 .id = 111,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 120, .y = 48 },
                     .size = .{ .x = 8, .y = 8 },
@@ -729,7 +731,7 @@
             },
             .{
                 .id = 112,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 0, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -738,7 +740,7 @@
             },
             .{
                 .id = 113,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 8, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -747,7 +749,7 @@
             },
             .{
                 .id = 114,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 16, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -756,7 +758,7 @@
             },
             .{
                 .id = 115,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 24, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -765,7 +767,7 @@
             },
             .{
                 .id = 116,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 32, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -774,7 +776,7 @@
             },
             .{
                 .id = 117,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 40, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -783,7 +785,7 @@
             },
             .{
                 .id = 118,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 48, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -792,7 +794,7 @@
             },
             .{
                 .id = 119,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 56, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -801,7 +803,7 @@
             },
             .{
                 .id = 120,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 64, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -810,7 +812,7 @@
             },
             .{
                 .id = 121,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 72, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -819,7 +821,7 @@
             },
             .{
                 .id = 122,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 80, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -828,7 +830,7 @@
             },
             .{
                 .id = 123,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 88, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -837,7 +839,7 @@
             },
             .{
                 .id = 124,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 96, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -846,7 +848,7 @@
             },
             .{
                 .id = 125,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 104, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -855,7 +857,7 @@
             },
             .{
                 .id = 126,
-                .advance = 0.5,
+                .advance = 8,
                 .rect = .{
                     .min = .{ .x = 112, .y = 56 },
                     .size = .{ .x = 8, .y = 8 },
@@ -865,4 +867,3 @@
         },
     }},
 }
-

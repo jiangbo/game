@@ -35,7 +35,7 @@ pub fn init(allocator_: std.mem.Allocator) void {
     bulletSize = bulletImage.size.scale(0.5);
 
     // 子弹的边界框，超出就可以删除。
-    bulletBound = .init(bulletSize.scale(-1), zhu.window.size);
+    bulletBound = .init(bulletSize.scale(-1), zhu.camera.size);
 }
 
 pub fn restart() void {
@@ -53,7 +53,7 @@ pub fn update(delta: f32) void {
     var iterator = std.mem.reverseIterator(enemies.items);
     while (iterator.nextPtr()) |enemy| {
         enemy.position.y += 150 * delta;
-        if (enemy.position.y > zhu.window.size.y) {
+        if (enemy.position.y > zhu.camera.size.y) {
             _ = enemies.swapRemove(iterator.index);
         } else if (enemy.shotTimer.updateFinished(delta)) {
             enemy.shotTimer.restart();
@@ -66,7 +66,7 @@ pub fn update(delta: f32) void {
 }
 
 fn spawnEnemy() void {
-    const x = zhu.random.float(0, zhu.window.size.x - size.x);
+    const x = zhu.random.float(0, zhu.camera.size.x - size.x);
     enemies.append(allocator, .{
         .position = .xy(x, -size.y),
     }) catch @panic("enemy oom");

@@ -40,7 +40,7 @@ pub fn init(pos: zhu.Vector2, size: zhu.Vector2) void {
 
     const playerImage = zhu.getImage("textures/Actors/foxy.png").?;
     image = playerImage.sub(.init(.zero, imageSize));
-    inline for (std.meta.fields(State)) |field| field.type.init();
+    inline for (@typeInfo(State).@"union".field_types) |T| T.init();
 
     state.enter();
 }
@@ -94,7 +94,6 @@ pub fn update(delta: f32) void {
     } else force.y = gravity;
 
     zhu.camera.smoothFollow(position, delta * 4);
-    zhu.camera.roundPosition();
 }
 
 pub fn collideRect() zhu.Rect {
@@ -121,7 +120,7 @@ pub fn draw() void {
     defer zhu.camera.pop();
 
     // 绘制得分
-    const pos: zhu.Vector2 = .xy(zhu.window.size.x - 100, 10);
+    const pos: zhu.Vector2 = .xy(zhu.camera.size.x - 100, 10);
     zhu.text.drawFmt("Score: {}", .{score}, pos, .{});
 
     // 绘制生命值

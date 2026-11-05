@@ -16,7 +16,7 @@ pub fn init() void {
     background = zhu.getImage("UI/Textfield_01.png").?;
     enter();
     var buffer: [4]u8 = undefined;
-    const bytes = zhu.window.readBuffer("high.save", &buffer) catch {
+    const bytes = zhu.extend.storage.readBuffer("high.save", &buffer) catch {
         battle.highScore = 0;
         return;
     };
@@ -36,7 +36,7 @@ pub fn update(delta: f32) void {
     time += delta;
 
     if (showCredits) {
-        if (zhu.key.changed or zhu.mouse.changed) showCredits = false;
+        if (zhu.input.anyChanged()) showCredits = false;
         return;
     }
 
@@ -55,17 +55,17 @@ pub fn update(delta: f32) void {
 pub fn draw() void {
 
     // 边框
-    var size = zhu.window.size.sub(.xy(60, 60));
+    var size = zhu.camera.size.sub(.xy(60, 60));
     batch.drawRectBorder(.init(.xy(30, 30), size), 10, .{
-        .r = 0.5 + @sin(time * 0.9) * 0.5,
-        .g = 0.5 + @sin(time * 0.8) * 0.5,
-        .b = 0.5 + @sin(time * 0.7) * 0.5,
-        .a = 1.0,
+        .r = @intFromFloat((0.5 + @sin(time * 0.9) * 0.5) * 255),
+        .g = @intFromFloat((0.5 + @sin(time * 0.8) * 0.5) * 255),
+        .b = @intFromFloat((0.5 + @sin(time * 0.7) * 0.5) * 255),
+        .a = 255,
     });
 
     // 标题
     const basicPos = zhu.Vector2.xy(320, 100); // 定位位置
-    size = zhu.window.size.div(.xy(2, 3));
+    size = zhu.camera.size.div(.xy(2, 3));
 
     // 先绘制图片，再绘制文字，减少批量绘制次数
     batch.drawImage(background, basicPos, .{ .size = size });

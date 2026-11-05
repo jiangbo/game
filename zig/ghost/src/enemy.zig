@@ -32,10 +32,10 @@ pub fn init(allocator_: zhu.Allocator) void {
     animations.set(.normal, .init(image, .xy(32, 32), &normalFrames));
     image = zhu.getImage("sprite/ghostHurt-Sheet.png").?;
     animations.set(.hurt, .init(image, .xy(32, 32), &normalFrames));
-    animations.getPtr(.hurt).loop = false;
+    animations.getPtr(.hurt).source.loop = false;
     image = zhu.getImage("sprite/ghostDead-Sheet.png").?;
     animations.set(.dead, .init(image, .xy(32, 32), &deadFrames));
-    animations.getPtr(.dead).loop = false;
+    animations.getPtr(.dead).source.loop = false;
 
     for (&animations.values, 0..) |*animation, i| {
         animation.extend = @intCast(i);
@@ -43,7 +43,7 @@ pub fn init(allocator_: zhu.Allocator) void {
 
     const spawnImage = zhu.getImage("effect/184_3.png").?;
     spawnAnimation = .initFinished(spawnImage, .xy(64, 64), &spawnFrames);
-    spawnAnimation.loop = false;
+    spawnAnimation.source.loop = false;
 }
 
 pub fn enter() void {
@@ -53,7 +53,7 @@ pub fn enter() void {
 }
 
 pub fn deinit() void {
-    enemies.deinit(allocator.raw);
+    enemies.deinit(allocator);
 }
 
 pub fn update(delta: f32) void {
@@ -80,7 +80,7 @@ pub fn update(delta: f32) void {
     }
 
     if (spawnAnimation.update(delta) == .end) {
-        enemies.appendSlice(allocator.raw, &spawnEnemies) catch unreachable;
+        enemies.appendSlice(allocator, &spawnEnemies) catch unreachable;
     }
 
     for (enemies.items) |*enemy| {
@@ -99,8 +99,8 @@ fn doSpawnEnemies() void {
     zhu.audio.playSound("sound/silly-ghost-sound-242342.ogg");
     for (&spawnEnemies) |*enemy| {
         const windowPos: zhu.Vector2 = .{
-            .x = zhu.random.float(0, zhu.window.size.x),
-            .y = zhu.random.float(0, zhu.window.size.y),
+            .x = zhu.random.float(0, zhu.camera.size.x),
+            .y = zhu.random.float(0, zhu.camera.size.y),
         };
         enemy.position = zhu.camera.toWorld(windowPos);
         enemy.stats = .{};

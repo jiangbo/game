@@ -31,7 +31,7 @@ pub fn init() void {
     const image = zhu.getImage("effect/Thunderstrike w blur.png").?;
     for (&spellAnimations) |*a| {
         a.* = .initFinished(image, .xy(64, 64), &spellFrames);
-        a.loop = false;
+        a.source.loop = false;
     }
     spellTimer.stop(); // 一开始就可以直接使用魔法
 }
@@ -64,9 +64,9 @@ pub fn update(delta: f32) void {
     }
 
     // 角色使用魔法
-    const canCastSpell = zhu.mouse.released(.LEFT);
+    const canCastSpell = zhu.key.released(.MOUSE_LEFT);
     if (canCastSpell and player.stats.health > 0) {
-        playerCastSpell(zhu.camera.toWorld(zhu.window.mouse));
+        playerCastSpell(zhu.camera.toWorld(zhu.mouse.pos));
     }
 
     for (&spellPositions, &spellAnimations) |pos, *animation| {
@@ -98,7 +98,7 @@ pub fn saveHighScore() void {
     if (score > highScore) {
         highScore = score;
         const bytes = std.mem.toBytes(score);
-        zhu.window.saveAll("high.save", &bytes) catch {
+        zhu.extend.storage.writeAll("high.save", &bytes) catch {
             std.log.info("save high score error", .{});
         };
     }
@@ -163,14 +163,14 @@ pub fn drawUI() void {
     // 冷却时间
     const image = zhu.getImage("UI/Electric-Icon.png").?;
     var size = image.size.scale(0.14);
-    pos = .xy(zhu.window.size.x - 300, 30 - size.y / 2);
+    pos = .xy(zhu.camera.size.x - 300, 30 - size.y / 2);
     batch.drawImage(image, pos, .{ .size = size });
 
     size.y = size.y * (1 - spellTimer.progress());
     batch.drawRect(.init(pos, size), .{ .color = .gray(0, 100) });
 
     // 得分
-    pos = .xy(zhu.window.size.x - 210, 6);
+    pos = .xy(zhu.camera.size.x - 210, 6);
     batch.drawImage(zhu.getImage("UI/Textfield_01.png").?, pos, .{
         .size = .xy(200, 48),
     });

@@ -13,7 +13,7 @@
         .speed = 60,
         .attackKind = .melee,
         .image = .{
-            .path = "assets/textures/Enemy/slime.png",
+            .path = "textures/Enemy/slime.png",
             .size = .{ .x = 5760, .y = 768 },
         },
         .faceRight = false,
@@ -115,7 +115,7 @@
         .speed = 80,
         .attackKind = .melee,
         .image = .{
-            .path = "assets/textures/Enemy/wolf.png",
+            .path = "textures/Enemy/wolf.png",
             .size = .{ .x = 5760, .y = 768 },
         },
         .faceRight = false,
@@ -220,7 +220,7 @@
         .size = .{ .x = 192, .y = 192 },
         .offset = .{ .x = -96, .y = -148 },
         .image = .{
-            .path = "assets/textures/Enemy/goblin.png",
+            .path = "textures/Enemy/goblin.png",
             .size = .{ .x = 5760, .y = 768 },
         },
         .animations = .{
@@ -323,17 +323,17 @@
         .size = .{ .x = 192, .y = 192 },
         .offset = .{ .x = -96, .y = -148 },
         .image = .{
-            .path = "assets/textures/Enemy/dark_witch.png",
+            .path = "textures/Enemy/dark_witch.png",
             .size = .{ .x = 5760, .y = 960 },
         },
         .sounds = .{
             .{
                 .action = .emit,
-                .path = "assets/audio/Fireball 1.ogg",
+                .path = "audio/Fireball 1.ogg",
             },
             .{
                 .action = .hit,
-                .path = "assets/audio/fire-ball.ogg",
+                .path = "audio/fire-ball.ogg",
             },
         },
         .animations = .{

@@ -60,7 +60,7 @@ pub fn load() void {
 
 fn loadSession() Session {
     var buffer: [64]u8 = undefined;
-    const content = zhu.window.readBuffer(savePath, &buffer) catch {
+    const content = zhu.extend.storage.readBuffer(savePath, &buffer) catch {
         return .{};
     };
 
@@ -77,7 +77,7 @@ fn saveSession() !void {
     var writer = std.Io.Writer.fixed(&buffer);
     try writer.writeStruct(session, .little);
 
-    try zhu.window.saveAll(savePath, buffer[0..writer.end]);
+    try zhu.extend.storage.writeAll(savePath, buffer[0..writer.end]);
 }
 
 pub fn changeNextLevel() void {
@@ -154,7 +154,7 @@ pub fn draw() void {
     defer zhu.camera.pop();
 
     if (state == .pause) {
-        const size = zhu.window.size;
+        const size = zhu.camera.size;
         const pos: zhu.Vector2 = .xy(size.x * 0.5, size.y * 0.2);
         zhu.text.draw("PAUSE", pos, .{
             .anchor = .center,
@@ -168,7 +168,7 @@ fn drawOver() void {
     const str = if (win) "YOU WIN! CONGRATS!" else "YOU DIED! TRY AGAIN!";
     const color: zhu.Color = if (win) .green else .red;
 
-    const size = zhu.window.size;
+    const size = zhu.camera.size;
     var pos: zhu.Vector2 = .xy(size.x * 0.5, size.y * 0.3);
     zhu.text.draw(str, pos, .{
         .anchor = .center,
@@ -177,14 +177,14 @@ fn drawOver() void {
     });
 
     var buffer: [128]u8 = undefined;
-    var text = zhu.text.format(&buffer, "Score: {}", .{player.score});
+    var text = zhu.format(&buffer, "Score: {}", .{player.score});
     pos = .xy(size.x * 0.5, size.y * 0.5);
     zhu.text.draw(text, pos, .{
         .anchor = .center,
         .scale = zhu.text.sizeToScale(32),
     });
 
-    text = zhu.text.format(&buffer, "High Score: {}", .{session.highScore});
+    text = zhu.format(&buffer, "High Score: {}", .{session.highScore});
     pos = .xy(size.x * 0.5, size.y * 0.6);
     zhu.text.draw(text, pos, .{
         .anchor = .center,

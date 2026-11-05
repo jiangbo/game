@@ -19,11 +19,11 @@ pub fn draw() void {
     zhu.camera.push(.window);
     defer zhu.camera.pop();
 
-    var pos: zhu.Vector2 = .xy(zhu.window.size.x / 2, 10);
+    var pos: zhu.Vector2 = .xy(zhu.camera.size.x / 2, 10);
     var healthSize: zhu.Vector2 = .xy(200, 12);
     const healthPos = pos.sub(healthSize.scale(0.5));
 
-    const health = game.world.get(game.world.getIdentity(Player).?, Health).?;
+    const health = game.world.getIdentity(Player, Health).?;
     var buffer: [50]u8 = undefined;
     var text = zhu.format(&buffer, "Health: {} / {}", .{
         health.current,
@@ -31,24 +31,24 @@ pub fn draw() void {
     });
 
     zhu.batch.drawRect(.init(healthPos, healthSize), .{
-        .color = .rgba(0.2, 0.2, 0.2, 1),
+        .color = .rgba(51, 51, 51, 255),
     });
     healthSize.x *= zhu.math.percentInt(health.current, health.max);
     zhu.batch.drawRect(.init(healthPos, healthSize), .{
-        .color = .rgba(0.298, 0.735, 0.314, 1),
+        .color = .rgba(76, 187, 80, 255),
     });
 
     drawTextCenter(text, pos, .{});
     pos.y += 16;
     drawTextCenter("Explore the Dungeon. A/S/D/W to move.", pos, .{});
 
-    const damage = game.world.get(game.world.getIdentity(Player).?, component.Damage).?.v;
+    const damage = game.world.getIdentity(Player, component.Damage).?.v;
     text = zhu.format(&buffer, "Damage: {} Dungeon Level: {}", .{
         damage,
         map.currentLevel,
     });
     const textSize = zhu.text.measure(text, .{});
-    drawText(text, .xy(zhu.window.size.x - textSize.x - 5, 10), .{});
+    drawText(text, .xy(zhu.camera.size.x - textSize.x - 5, 10), .{});
 
     if (!map.minMap) drawNameAndHealthIfNeed();
     drawCarriedItemIfNeed();
@@ -94,7 +94,7 @@ fn drawCarriedItemIfNeed() void {
 fn drawGameOverIfNeed() void {
     if (game.turn != .over) return;
 
-    var pos: zhu.Vector2 = .xy(zhu.window.size.x / 2, 130);
+    var pos: zhu.Vector2 = .xy(zhu.camera.size.x / 2, 130);
     drawTextCenter("Your quest has ended.", pos, .{ .color = .red, .scale = 2 });
 
     pos = pos.addY(50);
@@ -127,7 +127,7 @@ fn drawGameOverIfNeed() void {
 fn drawGameWinIfNeed() void {
     if (game.turn != .win) return;
 
-    var pos: zhu.Vector2 = .xy(zhu.window.size.x / 2, 130);
+    var pos: zhu.Vector2 = .xy(zhu.camera.size.x / 2, 130);
     drawTextCenter("You have won!", pos, .{ .color = .green, .scale = 2 });
 
     pos = pos.addY(50);
@@ -162,5 +162,5 @@ fn drawText(text: []const u8, position: zhu.Vector2, opt: Options) void {
 }
 
 fn textOption(opt: Options) zhu.text.Option {
-    return .{ .color = opt.color, .scale = .square(opt.scale) };
+    return .{ .color = opt.color, .scale = .all(opt.scale) };
 }

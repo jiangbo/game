@@ -1,3 +1,4 @@
+const ecs = @import("ecs");
 const std = @import("std");
 const zhu = @import("zhu");
 
@@ -6,11 +7,12 @@ const tiled = zhu.extend.tiled;
 
 const com = @import("component.zig");
 
-pub const maps = [_]tiled.Map{
+const tileSets: []const tiled.TileSet = @import("zon/tile.zon");
+pub const maps = tiled.bind(tileSets, &.{
     @import("zon/title.zon"),
     @import("zon/level1.zon"),
     @import("zon/level2.zon"),
-};
+});
 var data: *const tiled.Map = &maps[0];
 const Animation = struct {
     position: zhu.Vector2,
@@ -19,32 +21,45 @@ const Animation = struct {
     extend: tiled.ObjectExtend = .{},
 };
 var animations: std.ArrayList(Animation) = .empty;
-var tileVertexes: std.ArrayList(batch.Vertex) = .empty;
+const TileImage = struct {
+    position: zhu.Vector2,
+    image: zhu.Image,
+    size: ?zhu.Vector2 = null,
+};
+var tiles: std.ArrayList(TileImage) = .empty;
 
 pub const PlaceKind = enum { melee, ranged };
 pub const Place = struct {
     position: zhu.Vector2,
     size: zhu.Vector2,
     kind: PlaceKind,
-    entity: ?zhu.ecs.Entity = null,
+    entity: ?ecs.Entity = null,
 };
 
 pub var paths: std.AutoHashMapUnmanaged(u8, com.Path) = .empty;
 pub var startPaths: [10]u8 = undefined; // 最多 10 条起始路径
 pub var places: std.ArrayList(Place) = .empty;
 
-pub fn init(levelIndex: usize) void {
+pub fn init(allocator: zhu.Allocator, levelIndex: usize) void {
     data = &maps[levelIndex];
-    tiled.backgroundColor = data.backgroundColor;
+    _ = zhu.loadImage("textures/Units/Archer.png", .{
+        .size = .xy(1536, 384),
+    });
+    _ = zhu.loadImage("textures/Units/Lancer.png", .{
+        .size = .xy(3840, 640),
+    });
+    _ = zhu.loadImage("textures/Units/Warrior.png", .{
+        .size = .xy(1536, 576),
+    });
     @memset(&startPaths, 0);
 
     for (data.layers) |*layer| {
         if (std.mem.eql(u8, "path", layer.name)) {
-            parsePathLayer(layer);
+            parsePathLayer(allocator, layer);
         } else {
             switch (layer.type) {
-                .tile => parseTileLayer(layer),
-                .object => parseObjectLayer(layer),
+                .tile => parseTileLayer(allocator, layer),
+                .object => parseObjectLayer(allocator, layer),
                 else => unreachable,
             }
         }
@@ -57,14 +72,14 @@ pub fn init(levelIndex: usize) void {
     }.lessThan);
 }
 
-pub fn deinit() void {
-    tileVertexes.clearAndFree(zhu.assets.allocator);
-    animations.clearAndFree(zhu.assets.allocator);
-    places.clearAndFree(zhu.assets.allocator);
-    paths.clearAndFree(zhu.assets.allocator);
+pub fn deinit(allocator: zhu.Allocator) void {
+    tiles.clearAndFree(allocator);
+    animations.clearAndFree(allocator);
+    places.clearAndFree(allocator);
+    paths.clearAndFree(allocator);
 }
 
-fn parsePathLayer(layer: *const tiled.Layer) void {
+fn parsePathLayer(allocator: zhu.Allocator, layer: *const tiled.Layer) void {
     for (layer.objects) |object| {
         var path: com.Path = .{ .point = object.position };
         for (object.properties) |prop| {
@@ -75,58 +90,34 @@ fn parsePathLayer(layer: *const tiled.Layer) void {
             } else if (prop.is("start")) {
                 for (&startPaths) |*startPath| {
                     if (startPath.* != 0) continue;
-                    startPath.* = @intCast(object.gid);
+                    startPath.* = @intCast(object.id);
                     break;
                 } else unreachable;
             }
         }
-        paths.put(zhu.assets.allocator, @intCast(object.gid), path) //
+        paths.put(allocator, @intCast(object.id), path) //
         catch @panic("oom, can't put path");
     }
 }
 
-fn parseTileLayer(layer: *const tiled.Layer) void {
-    const ts = tiled.getTileSetById(zhu.id("Tilemap.tsj"));
-    const tileImage = zhu.assets.getImage(ts.image);
-
+fn parseTileLayer(allocator: zhu.Allocator, layer: *const tiled.Layer) void {
     for (layer.data, 0..) |gid, index| {
         if (gid == 0) continue;
-
-        const x: f32 = @floatFromInt(index % data.width);
-        const y: f32 = @floatFromInt(index / data.width);
-        var pos = data.tileSize.mul(.xy(x, y));
-
-        var image: zhu.graphics.Image = undefined;
-        const tileSetRef = data.getTileSetRefByGid(gid);
-        const tileSet = tiled.getTileSetByRef(tileSetRef);
-        const localId = gid - tileSetRef.firstGid;
-
-        const tile = tileSet.getTileByLocalId(localId);
-        if (tile != null and tile.?.animation.len > 0) {
-            image = zhu.assets.getImage(tileSet.image);
-            animations.append(zhu.assets.allocator, .{
+        var pos = data.grid.indexToWorld(index);
+        if (data.getAnimation(gid)) |animation| {
+            animations.append(allocator, .{
                 .position = pos,
-                .size = data.tileSize,
-                .value = .init(image, tile.?.animation),
-            }) catch @panic("oom, can't append animation");
-            continue;
-        }
-
-        if (tileSet.columns == 0) { // 单图片瓦片集的列数
-            image = zhu.assets.getImage(tile.?.id);
-            pos.y = pos.y - image.size.y + data.tileSize.y;
+                .size = data.grid.cellSize(),
+                .value = animation,
+            }) catch @panic("oom");
         } else {
-            const area = data.tileArea(localId, tileSet.columns);
-            image = tileImage.sub(area);
+            const image = data.getImage(gid).?;
+            pos.y += data.grid.cellSize().y - image.size.y;
+            tiles.append(allocator, .{
+                .position = pos,
+                .image = image,
+            }) catch @panic("oom");
         }
-
-        tileVertexes.append(zhu.assets.allocator, .{
-            .position = pos,
-            .size = image.size,
-            .texturePosition = image.toTexturePosition(),
-        }) catch @panic("oom, can't append tile");
-
-        // if (tile) |t| parseProperties(index, t); // 解析碰撞信息
     }
 }
 
@@ -138,59 +129,38 @@ fn placeKind(tile: *const tiled.Tile) ?PlaceKind {
     } else return null;
 }
 
-fn parseObjectLayer(layer: *const tiled.Layer) void {
+fn parseObjectLayer(allocator: zhu.Allocator, layer: *const tiled.Layer) void {
     for (layer.objects) |object| {
         if (object.gid == 0) {
             std.log.info("gid 0, position: {}", .{object.position});
             continue;
         }
 
-        const tileSetRef = data.getTileSetRefByGid(object.gid);
-        const tileSet = tiled.getTileSetByRef(tileSetRef);
-        const localId = object.gid - tileSetRef.firstGid;
-
-        const tile = tileSet.getTileByLocalId(localId);
-
-        if (tile == null) {
-            std.log.info("tile is null, gid: {}", .{object.gid});
-            continue;
-        }
+        const tile = data.getTile(object.gid) orelse continue;
 
         const pos = object.position.addY(-object.size.y);
-        if (placeKind(tile.?)) |kind| {
-            places.append(zhu.assets.allocator, .{
+        if (placeKind(tile)) |kind| {
+            places.append(allocator, .{
                 .position = pos,
                 .size = object.size,
                 .kind = kind,
             }) catch @panic("oom, can't append place");
         }
 
-        if (tileSet.columns == 0) {
-            const image = zhu.assets.getImage(tile.?.id);
-            tileVertexes.append(zhu.assets.allocator, .{
+        if (data.getAnimation(object.gid)) |animation| {
+            animations.append(allocator, .{
                 .position = pos,
                 .size = object.size,
-                .texturePosition = image.toTexturePosition(),
-            }) catch @panic("oom, can't append tile");
-        } else {
-
-            // 图片太大，不能合并到图集中，使用临时方案解决。
-            const path: ?[:0]const u8 = switch (tileSet.image) {
-                672649248 => "assets/textures/Units/Archer.png",
-                1853426592 => "assets/textures/Units/Lancer.png",
-                1610704809 => "assets/textures/Units/Warrior.png",
-                else => null,
-            };
-            const image = if (path) |p| blk: {
-                break :blk zhu.assets.loadImage(p, .zero);
-            } else zhu.assets.getImage(tileSet.image);
-
-            animations.append(zhu.assets.allocator, .{
-                .position = pos,
-                .size = object.size,
-                .value = .init(image, tile.?.animation),
+                .value = animation,
                 .extend = object.extend,
-            }) catch @panic("oom, can't append animation");
+            }) catch @panic("oom");
+        } else {
+            const image = data.getImage(object.gid).?;
+            tiles.append(allocator, .{
+                .position = pos,
+                .image = image,
+                .size = object.size,
+            }) catch @panic("oom");
         }
     }
 }
@@ -209,13 +179,19 @@ pub fn update(delta: f32) void {
 }
 
 pub fn draw() void {
-    batch.currentCommand().texture = batch.whiteImage.texture;
-    batch.vertexBuffer.appendSliceAssumeCapacity(tileVertexes.items);
+    for (tiles.items) |tile| {
+        batch.drawImage(tile.image, tile.position, .{ .size = tile.size });
+    }
 
     for (animations.items) |item| {
-        const image = item.value.subImage(item.size);
+        const image = item.value.subImage();
         batch.drawImage(image, item.position, .{
-            .flipX = item.extend.flipX,
+            .uvRect = image.uvFlip(item.extend.flipX, item.extend.flipY),
+            .size = item.size,
         });
     }
+}
+
+pub fn backgroundColor() zhu.Color {
+    return data.backgroundColor orelse .black;
 }
